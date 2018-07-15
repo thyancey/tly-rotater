@@ -1,32 +1,57 @@
 import React, { Component } from 'react';
 
 import { connect } from 'src/store';
+
+import Rotater from 'src/components/rotater';
+
 require('./style.less');
 
 class Main extends Component {
 
-  render() {
-    if(!this.props.loaded){
-      return (
-        <div id="sample">
-          <h1>{'Please wait... loading...'}</h1>
-          <button onClick={() => this.props.actions.toggleLoaded()}>{'toggle'}</button>
-        </div>
-      );
-    }else{
-      return (
-        <div id="sample" className="loaded">
-          <h1>{'LOADED'}</h1>
-          <button onClick={() => this.props.actions.toggleLoaded()}>{'toggle'}</button>
-        </div>
-      );
+  loadStoreData(){
+    // const url = process.env.PUBLIC_URL + '/data.json';
+    const url = '/data/rotater.json';
+    console.log(`reading app data from "${url}"`);
+
+    fetch(url).then(response => {
+                      return response.json();
+                    }, 
+                    err => console.error("Error fretching url", err)) //- bad url responds with 200/ok? so this doesnt get thrown
+              .then(json => {
+                      console.log(json)
+                      this.props.actions.setRotaterData(json);
+                      return true;
+                    }, 
+                    err => console.error("Error parsing store JSON (or the url was bad)", err));
+  }
+
+  componentDidMount(){
+    this.loadStoreData();
+  }
+
+  componentDidUpdate(prevProps){
+    if(this.props.loaded && !prevProps.loaded){
+      this.props.actions.setCurrentSpin(this.props.defaultSpinId)
     }
+  }
+
+  render() {
+    return(
+      <div className="main">
+        <header>
+          <h1>{'Rotater'}</h1>
+        </header>
+        <section className="body">  
+          <Rotater curSpin={this.props.curSpin}/>
+        </section>
+      </div>
+    );
 
   }
 }
 
-//- pass this component through the connect method to attach store values to props.
-//- actions get mapped to props without explicitly stating anything. you can use any action from the store.
 export default connect(state => ({ 
-  loaded: state.loaded
+  loaded: state.loaded,
+  defaultSpinId: state.defaultSpinId,
+  curSpin: state.curSpin
 }))(Main);

@@ -1,7 +1,23 @@
 @import "~themes/variables.less";
 
-#sample{
-  &.loaded{
-    color:@color-green;
+@header-height:4rem;
+
+.main{
+  header{
+    height:@header-height;
+    width:100%;
+
+    color:@color-green-5;
+    background-color:@color-grey-2;
+  }
+  .body{
+    position:absolute;
+    left:0;
+    top:@header-height;
+    width:100%;
+    height:~"calc(100% - @{header-height})";
+
+    color:@color-green-1;
+    background-color:@color-grey-1;
   }
 }
