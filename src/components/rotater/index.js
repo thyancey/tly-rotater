@@ -27,7 +27,51 @@ export default class Rotater extends Component {
     }
   }
 
+  onRotaterTouchStart(touchEvent){
+    // console.log('onRotaterTouchStart', touchEvent.changedTouches);
+    try{
+      this.setState({ 
+        dragging: true,
+        startX: touchEvent.changedTouches[0].clientX,
+        isSpinning:true
+      });
+    }catch(touchEvent){
+      console.error('problem with onRotaterTouchStart:', touchEvent);
+    }
+  }
+  onRotaterTouchMove(touchEvent){
+    // console.log('onRotaterTouchMove', touchEvent.changedTouches);
+    if(this.state.dragging){
+      try{
+        this.onMouseDrag(touchEvent.changedTouches[0].clientX, this.state.startX);
+      }catch(touchEvent){
+        console.error('problem with onRotaterTouchMove:', touchEvent);
+      }
+    }
+  }
+
+  onRotaterTouchEnd(touchEvent){
+    // console.log('onRotaterTouchEnd', touchEvent);
+    touchEvent.preventDefault();
+    try{
+      this.stopDragging(touchEvent.changedTouches[0].clientX);
+    }catch(touchEvent){
+      console.error('problem with onRotaterTouchEnd:', touchEvent);
+    }
+  }
+  onRotaterTouchCancel(touchEvent){
+    // console.log('touchCancel', touchEvent);
+    touchEvent.preventDefault();
+    try{
+      this.stopDragging(touchEvent.changedTouches[0].clientX);
+    }catch(touchEvent){
+      console.error('problem with onRotaterTouchCancel:', touchEvent);
+    }
+  }
+
+
   onRotaterMouseDown(mouseEvent){
+    // console.log('onRotaterMouseDown', mouseEvent);
     this.setState({ 
       dragging: true,
       startX: mouseEvent.clientX,
@@ -35,14 +79,17 @@ export default class Rotater extends Component {
     });
   }
   onRotaterMouseUp(mouseEvent){
+    // console.log('onRotaterMouseUp', mouseEvent);
     this.stopDragging(mouseEvent.clientX);
 
   }
   onRotaterMouseLeave(mouseEvent){
+    // console.log('onRotaterMouseLeave', mouseEvent);
     this.stopDragging(mouseEvent.clientX);
   }
 
   onRotaterMouseMove(mouseEvent){
+    // console.log('onRotaterMouseMove', mouseEvent);
     if(this.state.dragging){
       this.onMouseDrag(mouseEvent.clientX, this.state.startX);
     }
@@ -102,6 +149,10 @@ export default class Rotater extends Component {
     if(curSpin){
       return (
         <div className="rotater-image-container" 
+             onTouchStart={e => this.onRotaterTouchStart(e)}
+             onTouchMove={e => this.onRotaterTouchMove(e)}
+             onTouchEnd={e => this.onRotaterTouchEnd(e)}
+             onTouchCancel={e => this.onRotaterTouchCancel(e)}
              onMouseDown={e => this.onRotaterMouseDown(e)}
              onMouseMove={e => this.onRotaterMouseMove(e)}
              onMouseUp={e => this.onRotaterMouseUp(e)}
@@ -257,6 +308,54 @@ export default class Rotater extends Component {
     this.setFramerate(this.state.framerateSetting);
   }
 
+
+
+
+  onLeftTouchStart(touchEvent){
+    // console.log('onLeftTouchStart', touchEvent.changedTouches);
+    try{
+      this.setState({ holdingButton: 'left' });
+    }catch(touchEvent){
+      console.error('problem with onLeftTouchStart:', touchEvent);
+    }
+  }
+
+  onLeftTouchEnd(touchEvent){
+    // console.log('onLeftTouchEnd', touchEvent);
+    touchEvent.preventDefault();
+    try{
+      if(this.state.holdingButton === 'left'){
+        this.stopHoldingButtons();
+      }
+    }catch(touchEvent){
+      console.error('problem with onLeftTouchEnd:', touchEvent);
+    }
+  }
+  onRightTouchStart(touchEvent){
+    // console.log('onRightTouchStart', touchEvent.changedTouches);
+    try{
+      this.setState({ holdingButton: 'right' });
+    }catch(touchEvent){
+      console.error('problem with onRightTouchStart:', touchEvent);
+    }
+  }
+
+  onRightTouchEnd(touchEvent){
+    // console.log('onRightTouchEnd', touchEvent);
+    touchEvent.preventDefault();
+    try{
+      if(this.state.holdingButton === 'right'){
+        this.stopHoldingButtons();
+      }
+    }catch(touchEvent){
+      console.error('problem with onRightTouchEnd:', touchEvent);
+    }
+  }
+
+
+
+
+
   onLeftMouseDown(mouseEvent){
     // console.log('<- down');
     this.setState({ holdingButton: 'left' });
@@ -278,19 +377,19 @@ export default class Rotater extends Component {
 
 
   onRightMouseDown(mouseEvent){
-    console.log('-> down');
+    // console.log('-> down');
     this.setState({ holdingButton: 'right' });
   }
 
   onRightMouseUp(mouseEvent){
-    console.log('-> up');
+    // console.log('-> up');
     if(this.state.holdingButton === 'right'){
       this.stopHoldingButtons();
     }
   }
 
   onRightMouseLeave(mouseEvent){
-    console.log('-> leave');
+    // console.log('-> leave');
     if(this.state.holdingButton === 'right'){
       this.stopHoldingButtons();
     }
@@ -342,6 +441,8 @@ export default class Rotater extends Component {
 
           <section className="bottom">
             <div  className="button left" 
+                  onTouchStart={e => this.onLeftTouchStart(e)}
+                  onTouchEnd={e => this.onLeftTouchEnd(e)}
                   onMouseDown={e => this.onLeftMouseDown(e)}
                   onMouseUp={e => this.onLeftMouseUp(e)}
                   onMouseLeave={e => this.onLeftMouseLeave(e)} >
@@ -350,6 +451,8 @@ export default class Rotater extends Component {
             <div className="rotater-pedestal">
             </div>
             <div  className="button right" 
+                  onTouchStart={e => this.onRightTouchStart(e)}
+                  onTouchEnd={e => this.onRightTouchEnd(e)}
                   onMouseDown={e => this.onRightMouseDown(e)}
                   onMouseUp={e => this.onRightMouseUp(e)}
                   onMouseLeave={e => this.onRightMouseLeave(e)} >
