@@ -3,43 +3,31 @@ import React, { Component } from 'react';
 require('./style.less');
 
 
-const MAX_FRAMERATE = 10;
-const MIN_FRAMERATE = 1000;
-
 export default class Rotater extends Component {
   constructor(){
     super();
     
     this.state = {
-      curIdx: 0,
-      curImage: 'images/htcone/closed_000.png',
-      holdingButton:null,
       startX: 0,
       dragXPercent: 0,
+      curIdx: 0,
       lastTime:0,
-      dragging: false,
-      isSpinning: false,
       angle:0,
       APMs:0,
-      framerate:0,
-      framerateSetting:.75
+      dragging: false,
+      isSpinning: false
     }
   }
 
   componentDidMount(){
-    this.setFramerate(this.state.framerateSetting);
+    this.startSpinInterval(this.props.framerate);
   }
 
   componentDidUpdate(prevProps, prevState){
-    if(prevState.framerate !== this.state.framerate){
-      this.startSpinInterval(this.state.framerate);
+    if(prevProps.framerate !== this.props.framerate){
+      this.startSpinInterval(this.props.framerate);
     }
   }
-
-
-
-
-
 
 
 
@@ -58,7 +46,7 @@ export default class Rotater extends Component {
   //- calc total drag space, and return % of how far you've dragged it
   onDragging(curX, startX){
     let dx = curX - startX;
-    const maxDragX = this.refs.imageContainer.offsetWidth / 3;
+    const maxDragX = this.refs.rotater.offsetWidth / 3;
 
     //at some point, you've dragged far enough.
     if(Math.abs(dx) > maxDragX){
@@ -165,7 +153,6 @@ export default class Rotater extends Component {
   }
 
   haltSpinning(lastTime){
-    console.log('haltSpinning');
     this.setState({
       lastTime: lastTime,
       APMs:0,
@@ -230,51 +217,13 @@ export default class Rotater extends Component {
       this.checkPhysics(this.state.APMs, this.state.lastTime);
     }
 
-    if(this.state.holdingButton === 'left'){
+    if(this.props.manualDirection === 'left'){
       this.manualRotation(-1);
 
-    }else if(this.state.holdingButton === 'right'){
+    }else if(this.props.manualDirection === 'right'){
       this.manualRotation(1);
     }
   }
-
-
-
-
-
-
-/***
- *    ███████╗██████╗  █████╗ ███╗   ███╗███████╗██████╗  █████╗ ████████╗███████╗
- *    ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██╔════╝
- *    █████╗  ██████╔╝███████║██╔████╔██║█████╗  ██████╔╝███████║   ██║   █████╗  
- *    ██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██╔══██╗██╔══██║   ██║   ██╔══╝  
- *    ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗██║  ██║██║  ██║   ██║   ███████╗
- *    ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝
- *                                                                                
- */
-
-
-  setFramerate(percValue){
-    const framerate = this.getLogValues(percValue, MIN_FRAMERATE, MAX_FRAMERATE, true);
-    this.setState({
-      framerateSetting: percValue,
-      framerate: framerate
-    });
-  }
-
-  getLogValues(percent, min, max, shouldRound){
-    const minValue = Math.log(min);
-    const maxValue = Math.log(max);
-    const scale = Math.log(max) - Math.log(min);
-
-    if(shouldRound){
-      return parseInt(Math.exp(minValue + scale * percent));
-    }else{
-      return Math.exp(minValue + scale * percent);
-    }
-  }
-
-
 
 
 
@@ -345,34 +294,6 @@ export default class Rotater extends Component {
 
 
 
-/*
-* Clicking and holding rotation buttons
-*/
-  onRotationButtonDown(mouseOrTouchEvent, direction){
-    this.setState({ holdingButton: direction });
-  }
-
-  onRotationButtonUp(mouseOrTouchEvent, direction){
-    try{
-      mouseOrTouchEvent.preventDefault();
-
-      if(this.state.holdingButton){
-        this.stopHoldingButtons();
-      }
-    }catch(e){
-      console.error('problem with onRotationButtonUp:', e);
-    }
-  }
-
-  stopHoldingButtons(){
-    this.setState({ holdingButton: null });
-  }
-
-
-
-
-
-
 /***
  *    ██████╗ ███████╗███╗   ██╗██████╗ ███████╗██████╗ ██╗███╗   ██╗ ██████╗ 
  *    ██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝██╔══██╗██║████╗  ██║██╔════╝ 
@@ -383,76 +304,42 @@ export default class Rotater extends Component {
  *                                                                            
  */
 
+  renderDebugContainer(){
+    const angle = parseInt(this.state.angle);
+    const apm = parseInt(this.state.APMs * 1000);
+    const dragPercent = parseInt(this.state.dragXPercent * 100);
+    const fps = parseInt(1000 / this.props.framerate);
 
-  renderImageContainer(curSpin, curSpinIdx){
-    if(curSpin){
-      return (
-        <div className="rotater-image-container" 
-             ref="imageContainer"
-             onMouseDown={e => this.onRotaterDragStart(e)}
-             onMouseMove={e => this.onRotaterDragMove(e)}
-             onMouseUp={e => this.onRotaterDragCancel(e)}
-             onMouseLeave={e => this.onRotaterDragCancel(e)} 
-
-             onTouchStart={e => this.onRotaterDragStart(e)}
-             onTouchMove={e => this.onRotaterDragMove(e)}
-             onTouchEnd={e => this.onRotaterDragCancel(e)}
-             onTouchCancel={e => this.onRotaterDragCancel(e)}>
-          {curSpin.images.map((si, idx) => (
-            <img draggable={false} key={idx} src={si} style={{ 'display': idx === curSpinIdx ? 'inline' : 'none' }}/>
-          ))}
-        </div>
-      )
-    }else{
-      return (
-        <div className="rotater-image-container">
-          <h2>{'loading...'}</h2>
-        </div>
-      )
-    }
+    return(
+      <div className="rotater-debug">
+        <ul>
+          <li>{`angle: ${angle} deg`}</li>
+          <li>{`deg/sec: ${apm}`}</li>
+          <li>{`dragPercent: ${dragPercent}%`}</li>
+          <li>{`fps: ${fps}`}</li>
+        </ul>
+        <div className="rotater-debug-bg" />
+      </div>
+    );
   }
 
   render() {
-    const dispAngle = parseInt(this.state.angle) + ' degrees';
-    const dispApm = `${parseInt(this.state.APMs * 1000)} degrees/second`;
-    const dispPercent = `dragging: ${parseInt(this.state.dragXPercent * 100)}%`;
-
-    const framerate = `${parseInt(1000 / this.state.framerate)} fps`;
-
     return (
-      <div className="rotater">
-        <div className="rotater-stage">
-          <section className="top">
-            <p>{dispAngle}</p>
-            <p>{dispApm}</p>
-            <p>{dispPercent}</p>
-            <p>{`framerate: ${framerate}`}</p>
-            <input type='range' value={this.state.framerateSetting} min={0.0} max={1.0} step={0.01} onChange={e => this.setFramerate(e.target.value)} />
-          </section>
+      <div className="rotater" 
+           ref="rotater"
+           onMouseDown={e => this.onRotaterDragStart(e)}
+           onMouseMove={e => this.onRotaterDragMove(e)}
+           onMouseUp={e => this.onRotaterDragCancel(e)}
+           onMouseLeave={e => this.onRotaterDragCancel(e)} 
 
-          {this.renderImageContainer(this.props.curSpin, this.state.curIdx)}
-
-          <section className="bottom">
-            <div  className="button left" 
-                  onMouseDown={e => this.onRotationButtonDown(e, 'left')}
-                  onMouseUp={e => this.onRotationButtonUp(e, 'left')}
-                  onMouseLeave={e => this.onRotationButtonUp(e, 'left')} 
-                  onTouchStart={e => this.onRotationButtonDown(e, 'left')}
-                  onTouchEnd={e => this.onRotationButtonUp(e, 'left')} >
-              <p>{'<'}</p>
-            </div>
-            <div className="rotater-pedestal">
-            </div>
-            <div  className="button right" 
-                  onMouseDown={e => this.onRotationButtonDown(e, 'right')}
-                  onMouseUp={e => this.onRotationButtonUp(e, 'right')}
-                  onMouseLeave={e => this.onRotationButtonUp(e, 'right')} 
-                  onTouchStart={e => this.onRotationButtonDown(e, 'right')}
-                  onTouchEnd={e => this.onRotationButtonUp(e, 'right')} >
-              <p>{'>'}</p>
-            </div>
-          </section>
-        </div>
+           onTouchStart={e => this.onRotaterDragStart(e)}
+           onTouchMove={e => this.onRotaterDragMove(e)}
+           onTouchEnd={e => this.onRotaterDragCancel(e)}
+           onTouchCancel={e => this.onRotaterDragCancel(e)}>
+        {this.props.debug ? this.renderDebugContainer() : null }
+        {this.props.curSpin.images.map((si, idx) => (
+          <img draggable={false} key={idx} src={si} style={{ 'display': idx === this.state.curIdx ? 'inline' : 'none' }}/>
+        ))}
       </div>
     );
   }

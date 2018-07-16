@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import { connect } from 'src/store';
 
-import Rotater from 'src/components/rotater';
+import RotaterContainer from 'src/components/rotater-container';
 
 require('./style.less');
 
@@ -42,7 +42,7 @@ class Main extends Component {
           <h1>{'Rotater'}</h1>
         </header>
         <section className="body">  
-          <Rotater curSpin={this.props.curSpin} framerate={10} />
+          <RotaterContainer curSpin={this.props.curSpin} />
         </section>
       </div>
     );
