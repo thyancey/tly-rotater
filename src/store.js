@@ -46,13 +46,9 @@ const store = {
     toggleLoaded: ({ loaded }) => ({ loaded: !loaded }),
     setRotaterData: ({ spinDefinitions, defaultSpinId }, newData) => {
       for(let spinId in newData.spins){
-        if(!newData.spins[spinId].physics){
-          newData.spins[spinId].physics = newData.defaultPhysics;
-        }
-
-        newData.spins[spinId].physics.speed = newData.spins[spinId].physics.speed * newData.spins[spinId].physics.multiplier;
-        newData.spins[spinId].physics.maxVx = newData.spins[spinId].physics.maxVx * newData.spins[spinId].physics.multiplier;
-        newData.spins[spinId].physics.friction = newData.spins[spinId].physics.friction * newData.spins[spinId].physics.multiplier;
+        newData.spins[spinId].id = spinId;
+        //- get default physics values, with any overrides.
+        newData.spins[spinId].physics = Object.assign({}, newData.defaultPhysics, newData.spins[spinId].physics);
       };
 
       return{

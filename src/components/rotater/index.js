@@ -94,47 +94,50 @@ export default class Rotater extends Component {
  */
 
   checkPhysics(APMs, lastTime){
+    //- grab junk from definition
     const ph = this.props.curSpin.physics;
+    const speed = ph.speed;
+    const accel = ph.accel;
+    const friction = ph.friction;
+    const maxAPMs = ph.maxAPMs;
+    const minAPMs = ph.minAPMs;
+    const spinDirection = this.props.curSpin.direction;
+
+
+    //- calc time elapsed since last checkPhysics cycle
     const nowTime = new Date().getTime();
     if(!lastTime){
       this.setState({'lastTime': nowTime});
       return;
     }
-
     const timeDiff = nowTime - lastTime;
 
-    const speed = .002;
-    const accel = 1.02;
-    const friction = 1.001;
-    // const maxAPMs = .36; //- 1 rotation per second
-    const maxAPMs = 3.6; //- 10 rotations per second!
-    const minAPMs = .025;
-    const spinDirection = 1;
-
+  //- TODO: this could probably improved with calculus? I dunno it's been a real long time since I've done any of that.
     //- calc amount of change per millisecond cycle
-    const speedo = (this.state.dragXPercent * accel) * speed * spinDirection;
+    const speedChange = (this.state.dragXPercent * accel) * speed * spinDirection;
 
     //- now apply for all milliseconds that have passed.
     if(this.state.dragging){
       for(let i = 0; i < timeDiff; i++){
-        APMs += speedo;
+        APMs += speedChange;
+        //- friction here is a little more realistic, but takes a lot more value tweaking to get max speed, so just dont use it.
+        // APMs /= friction;
       }
     }else{
       for(let i = 0; i < timeDiff; i++){
+        //- slow down!
         APMs /= friction;
       }
     }
 
-    let direction = APMs > 0 ? 1 : -1;
-    
     //- if you're moving slow enough, just go ahead and stop instead of wasting cycles and looking bad
     if(Math.abs(APMs) < minAPMs && !this.state.dragging){
       this.haltSpinning(nowTime);
     }else{
       //- plateu speed if moving too fast
       if(maxAPMs && Math.abs(APMs) > maxAPMs){
-        // console.log('maxed out');
-        APMs = maxAPMs * direction;
+        //- make sure you keep the right + or - speed at your max
+        APMs = maxAPMs * (APMs > 0 ? 1 : -1);
       }
 
       //- apply current speed and passed time to actual rotation
@@ -145,7 +148,7 @@ export default class Rotater extends Component {
 
 
 
-    //- now apply speed to the spin
+  //- apply speed to the spin
   applySpin(APMs, timeDiff, lastTime){
     const angleChange = APMs * timeDiff;
 
@@ -162,6 +165,7 @@ export default class Rotater extends Component {
   }
 
   haltSpinning(lastTime){
+    console.log('haltSpinning');
     this.setState({
       lastTime: lastTime,
       APMs:0,
@@ -185,7 +189,7 @@ export default class Rotater extends Component {
   }
 
   manualRotation(angleChange){
-    const newAngle = this.state.angle + angleChange;
+    const newAngle = this.state.angle + (angleChange * this.props.curSpin.direction);
     const idx = this.getFrameAtAngle(newAngle);
 
     this.setState({
@@ -207,7 +211,6 @@ export default class Rotater extends Component {
  *                                 
  */
 
-
   startSpinInterval(framerate){
     this.killSpinInterval();
     this.spinInterval = global.setInterval(() => {
@@ -228,10 +231,10 @@ export default class Rotater extends Component {
     }
 
     if(this.state.holdingButton === 'left'){
-      this.manualRotation(1);
+      this.manualRotation(-1);
 
     }else if(this.state.holdingButton === 'right'){
-      this.manualRotation(-1);
+      this.manualRotation(1);
     }
   }
 
@@ -303,6 +306,7 @@ export default class Rotater extends Component {
       this.setState({ 
         dragging: true,
         startX: startX,
+        lastTime: new Date().getTime(),
         isSpinning:true
       });
 
