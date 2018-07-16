@@ -15,10 +15,10 @@ export default class Rotater extends Component {
       startX: 0,
       dragXPercent: 0,
       lastTime:0,
-      vX:0,
       dragging: false,
       isSpinning: false,
-      angle:0
+      angle:0,
+      APMs:0
     }
   }
 
@@ -115,75 +115,79 @@ export default class Rotater extends Component {
     }
   }
 
-  checkPhysics(){
+  checkPhysics(APMs, lastTime){
     const ph = this.props.curSpin.physics;
-    // let multiplier = 10;
-    let direction = 1;
-    let isSpinning = false;
-    let isAccelerating = false;
-    let angle = this.state.angle;
+    const nowTime = new Date().getTime();
+    if(!lastTime){
+      this.setState({'lastTime': nowTime});
+      return;
+    }
 
-    //accelerate
-    let oldVx = this.state.vX;
+    const timeDiff = nowTime - lastTime;
 
-    // console.log('. start: ', oldVx);
-    let vX = oldVx + Number(this.state.dragXPercent * (ph.speed * ph.aX) * this.props.curSpin.direction);
-    console.log('new ', vX);
+    const speed = .002;
+    const accel = 1.02;
+    const friction = 1.001;
+    // const maxAPMs = .36; //- 1 rotation per second
+    const maxAPMs = 3.6; //- 10 rotations per second!
+    const minAPMs = .025;
 
-    if(vX !== 0){
-      isSpinning = true;
+    //- calc amount of change per millisecond cycle
+    const speedo = (this.state.dragXPercent * accel) * speed;
+
+    //- now apply for all milliseconds that have passed.
+    if(this.state.dragging){
+      for(let i = 0; i < timeDiff; i++){
+        APMs += speedo;
+
+        // APMs /= friction;
+      }
     }else{
-      console.log('cause it is ', vX)
+      for(let i = 0; i < timeDiff; i++){
+        APMs /= friction;
+      }
     }
 
-    //find direction
-    if(vX < 0){
-      direction = -1;
-    }
-
-    //drag
-    // console.log('was: ', vX);
-    vX = vX * ph.frictionX;
-
-
-    //max out
-    if(Math.abs(vX) > ph.maxVx){
-      vX = ph.maxVx * direction;
-    }
-    // console.log('and now: ', vX);
-
-    isAccelerating = oldVx < vX;
-
-    // console.log('oldVx:', oldVx);
-    // console.log('vX:', vX);
-
-    //cut off spin when hitting crappy low values
-    // if((Math.abs(vX) < Math.abs(ph.minVx)) && isSpinning && !isAccelerating && !this.state.dragging){
-    if((Math.abs(vX) < Math.abs(ph.minVx)) && isSpinning && !this.state.dragging){
-      console.log('screeeeecchhh');
-      vX = 0;
-      isSpinning = false;
-      this.setState({
-        isSpinning:false,
-        vX:0
-      });
+    let direction = APMs > 0 ? 1 : -1;
+    
+    //- if you're moving slow enough, just go ahead and stop instead of wasting cycles and looking bad
+    if(Math.abs(APMs) < minAPMs && !this.state.dragging){
+      this.haltSpinning(nowTime);
     }else{
-      let floater = 100;
-      angle = angle + (vX * ph.dampen);
-      angle = Math.round(angle * floater) / floater;
-      //loop to end
-      // console.log('angle: ', angle);
+      //- plateu speed if moving too fast
+      if(maxAPMs && Math.abs(APMs) > maxAPMs){
+        // console.log('maxed out');
+        APMs = maxAPMs * direction;
+      }
 
-      this.setState({
-        isSpinning:true,
-        lastTime: new Date().getTime(),
-        angle: angle,
-        curIdx: this.getFrameAtAngle(angle),
-        vX: vX
-      });
+      //- apply current speed and passed time to actual rotation
+      this.applySpin(APMs, timeDiff, nowTime);
     }
   }
 
+  //- now apply speed to the spin
+  applySpin(APMs, timeDiff, lastTime){
+    const angleChange = APMs * timeDiff;
+
+    const newAngle = this.state.angle + angleChange;
+    const idx = this.getFrameAtAngle(newAngle);
+
+    this.setState({
+      lastTime: lastTime,
+      angle: newAngle,
+      APMs: APMs,
+      isSpinning:true,
+      curIdx: idx
+    });
+  }
+
+  haltSpinning(lastTime){
+    this.setState({
+      lastTime: lastTime,
+      APMs:0,
+      isSpinning:false
+    });
+  }
 
   //- get an angle, return which idx of image to display.
   //- angle can be negative or well over 360 degrees.
@@ -200,45 +204,37 @@ export default class Rotater extends Component {
     return Math.floor((mod / 360) * this.props.curSpin.images.length);
   }
 
-  manualRotation(degrees){
-    let angle = this.state.angle + degrees;
-    this.setState({
-      angle:angle,
-      curIdx: this.getFrameAtAngle(angle)
-    });
-  }
+  manualRotation(angleChange){
+    const newAngle = this.state.angle + angleChange;
+    const idx = this.getFrameAtAngle(newAngle);
 
-  flickRotation(vX){
     this.setState({
-      isSpinning:true,
-      vX: this.state.vX + vX
+      angle: newAngle,
+      curIdx: idx
     });
   }
 
   onSpinInterval(){
     if(this.state.isSpinning){
-      this.checkPhysics();
+      this.checkPhysics(this.state.APMs, this.state.lastTime);
     }
 
     if(this.state.holdingButton === 'left'){
-        //- single frame movement
       this.manualRotation(-1);
-        //- lil spin daddy
-      //this.flickRotation(-1);
 
     }else if(this.state.holdingButton === 'right'){
-        //- single frame movement
       this.manualRotation(1);
-        //- lil spin daddy
-      //this.flickRotation(1);
     }
   }
 
   startSpinInterval(){
     this.killSpinInterval();
+    this.setState({
+      angle:0,
+      APMs:0
+    });
     this.spinTicker = global.setInterval(() => {
       this.onSpinInterval();
-      // console.log('ticky');
     }, this.props.framerate);
   }
 
@@ -306,13 +302,16 @@ export default class Rotater extends Component {
 
 
   render() {
+    const dispAngle = parseInt(this.state.angle) + '°';
+    const dispApm = `${parseInt(this.state.APMs * 1000)}°/s`;
+    const dispPercent = `dragging: ${parseInt(this.state.dragXPercent * 100)}%`;
 
     return (
       <div className="rotater">
         <div className="rotater-stage">
           <section className="top">
-            <h1>{this.state.vX}</h1>
-            <h1>{this.state.dragXPercent}</h1>
+            <h1>{`${dispAngle} at ${dispApm}`}</h1>
+            <h1>{dispPercent}</h1>
           </section>
 
           {this.renderImageContainer(this.props.curSpin, this.state.curIdx)}
