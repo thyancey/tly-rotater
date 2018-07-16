@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 require('./style.less');
 
-const MAX_X = 300;
 
 const MAX_FRAMERATE = 10;
 const MIN_FRAMERATE = 1000;
@@ -27,75 +26,51 @@ export default class Rotater extends Component {
     }
   }
 
-  onRotaterTouchStart(touchEvent){
-    // console.log('onRotaterTouchStart', touchEvent.changedTouches);
-    try{
-      this.setState({ 
-        dragging: true,
-        startX: touchEvent.changedTouches[0].clientX,
-        isSpinning:true
-      });
-    }catch(touchEvent){
-      console.error('problem with onRotaterTouchStart:', touchEvent);
-    }
-  }
-  onRotaterTouchMove(touchEvent){
-    // console.log('onRotaterTouchMove', touchEvent.changedTouches);
-    if(this.state.dragging){
-      try{
-        this.onMouseDrag(touchEvent.changedTouches[0].clientX, this.state.startX);
-      }catch(touchEvent){
-        console.error('problem with onRotaterTouchMove:', touchEvent);
-      }
-    }
+  componentDidMount(){
+    this.setFramerate(this.state.framerateSetting);
   }
 
-  onRotaterTouchEnd(touchEvent){
-    // console.log('onRotaterTouchEnd', touchEvent);
-    touchEvent.preventDefault();
-    try{
-      this.stopDragging(touchEvent.changedTouches[0].clientX);
-    }catch(touchEvent){
-      console.error('problem with onRotaterTouchEnd:', touchEvent);
-    }
-  }
-  onRotaterTouchCancel(touchEvent){
-    // console.log('touchCancel', touchEvent);
-    touchEvent.preventDefault();
-    try{
-      this.stopDragging(touchEvent.changedTouches[0].clientX);
-    }catch(touchEvent){
-      console.error('problem with onRotaterTouchCancel:', touchEvent);
+  componentDidUpdate(prevProps, prevState){
+    if(prevState.framerate !== this.state.framerate){
+      this.startSpinInterval(this.state.framerate);
     }
   }
 
 
-  onRotaterMouseDown(mouseEvent){
-    // console.log('onRotaterMouseDown', mouseEvent);
-    this.setState({ 
-      dragging: true,
-      startX: mouseEvent.clientX,
-      isSpinning:true
-    });
-  }
-  onRotaterMouseUp(mouseEvent){
-    // console.log('onRotaterMouseUp', mouseEvent);
-    this.stopDragging(mouseEvent.clientX);
 
-  }
-  onRotaterMouseLeave(mouseEvent){
-    // console.log('onRotaterMouseLeave', mouseEvent);
-    this.stopDragging(mouseEvent.clientX);
-  }
 
-  onRotaterMouseMove(mouseEvent){
-    // console.log('onRotaterMouseMove', mouseEvent);
-    if(this.state.dragging){
-      this.onMouseDrag(mouseEvent.clientX, this.state.startX);
+
+
+
+
+
+
+/***
+ *    ██████╗ ██████╗  █████╗  ██████╗     ██╗      ██████╗  ██████╗ ██╗ ██████╗
+ *    ██╔══██╗██╔══██╗██╔══██╗██╔════╝     ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
+ *    ██║  ██║██████╔╝███████║██║  ███╗    ██║     ██║   ██║██║  ███╗██║██║     
+ *    ██║  ██║██╔══██╗██╔══██║██║   ██║    ██║     ██║   ██║██║   ██║██║██║     
+ *    ██████╔╝██║  ██║██║  ██║╚██████╔╝    ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
+ *    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝     ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
+ *                                                                              
+ */
+
+  //- calc total drag space, and return % of how far you've dragged it
+  onDragging(curX, startX){
+    let dx = curX - startX;
+    const maxDragX = this.refs.imageContainer.offsetWidth / 3;
+
+    //at some point, you've dragged far enough.
+    if(Math.abs(dx) > maxDragX){
+      dx = maxDragX * (dx < 0 ? -1 : 1);
     }
+
+    const dragXPercent = dx / maxDragX;
+    // console.log('perc:', dragXPercent)
+    this.setState({ dragXPercent: dragXPercent });
   }
 
-  stopDragging(mouseX){
+  stopDragging(){
     this.setState({ 
       dragging: false,
       startX: 0,
@@ -103,73 +78,20 @@ export default class Rotater extends Component {
     });
   }
 
-  onMouseDrag(curX, startX){
-    let xDir = 1;
-    let dx = curX - startX;
-
-    //at some point, you've dragged far enough.
-    if(Math.abs(dx) > MAX_X){
-      if(dx < 0){
-        xDir = -1;
-      }
-      dx = MAX_X * xDir;
-    }
-
-    const dragXPercent = dx / MAX_X;
-
-    // console.log('dragXPercent: ', dragXPercent)
-    this.setState({ dragXPercent: dragXPercent });
-  }
 
 
 
-  advanceSpinIndex(newIdx){
-    const numImages = this.props.curSpin.images.length;
-    if(newIdx >= numImages){
-      this.setState({ curIdx: 0 });
-    }else if(newIdx < 0){
-      this.setState({ curIdx: numImages - 1 });
-    }else{
-      this.setState({ curIdx: newIdx })
-    }
-  }
-
-  onClickSpinForward(mouseEvent){
-    console.log('->');
-    this.advanceSpinIndex(this.state.curIdx + 1);
-  }
-
-  onClickSpinBackward(mouseEvent){
-    console.log('<-');
-    this.advanceSpinIndex(this.state.curIdx - 1);
-  }
 
 
-  renderImageContainer(curSpin, curSpinIdx){
-    if(curSpin){
-      return (
-        <div className="rotater-image-container" 
-             onTouchStart={e => this.onRotaterTouchStart(e)}
-             onTouchMove={e => this.onRotaterTouchMove(e)}
-             onTouchEnd={e => this.onRotaterTouchEnd(e)}
-             onTouchCancel={e => this.onRotaterTouchCancel(e)}
-             onMouseDown={e => this.onRotaterMouseDown(e)}
-             onMouseMove={e => this.onRotaterMouseMove(e)}
-             onMouseUp={e => this.onRotaterMouseUp(e)}
-             onMouseLeave={e => this.onRotaterMouseUp(e)} >
-          {curSpin.images.map((si, idx) => (
-            <img draggable={false} key={idx} src={si} style={{ 'display': idx === curSpinIdx ? 'inline' : 'none' }}/>
-          ))}
-        </div>
-      )
-    }else{
-      return (
-        <div className="rotater-image-container">
-          <h2>{'loading...'}</h2>
-        </div>
-      )
-    }
-  }
+/***
+ *    ██████╗ ██╗  ██╗██╗   ██╗███████╗██╗ ██████╗███████╗     ██████╗ █████╗ ██╗      ██████╗
+ *    ██╔══██╗██║  ██║╚██╗ ██╔╝██╔════╝██║██╔════╝██╔════╝    ██╔════╝██╔══██╗██║     ██╔════╝
+ *    ██████╔╝███████║ ╚████╔╝ ███████╗██║██║     ███████╗    ██║     ███████║██║     ██║     
+ *    ██╔═══╝ ██╔══██║  ╚██╔╝  ╚════██║██║██║     ╚════██║    ██║     ██╔══██║██║     ██║     
+ *    ██║     ██║  ██║   ██║   ███████║██║╚██████╗███████║    ╚██████╗██║  ██║███████╗╚██████╗
+ *    ╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝ ╚═════╝╚══════╝     ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝
+ *                                                                                            
+ */
 
   checkPhysics(APMs, lastTime){
     const ph = this.props.curSpin.physics;
@@ -187,16 +109,15 @@ export default class Rotater extends Component {
     // const maxAPMs = .36; //- 1 rotation per second
     const maxAPMs = 3.6; //- 10 rotations per second!
     const minAPMs = .025;
+    const spinDirection = 1;
 
     //- calc amount of change per millisecond cycle
-    const speedo = (this.state.dragXPercent * accel) * speed;
+    const speedo = (this.state.dragXPercent * accel) * speed * spinDirection;
 
     //- now apply for all milliseconds that have passed.
     if(this.state.dragging){
       for(let i = 0; i < timeDiff; i++){
         APMs += speedo;
-
-        // APMs /= friction;
       }
     }else{
       for(let i = 0; i < timeDiff; i++){
@@ -221,7 +142,10 @@ export default class Rotater extends Component {
     }
   }
 
-  //- now apply speed to the spin
+
+
+
+    //- now apply speed to the spin
   applySpin(APMs, timeDiff, lastTime){
     const angleChange = APMs * timeDiff;
 
@@ -270,18 +194,19 @@ export default class Rotater extends Component {
     });
   }
 
-  onSpinInterval(){
-    if(this.state.isSpinning){
-      this.checkPhysics(this.state.APMs, this.state.lastTime);
-    }
 
-    if(this.state.holdingButton === 'left'){
-      this.manualRotation(-1);
 
-    }else if(this.state.holdingButton === 'right'){
-      this.manualRotation(1);
-    }
-  }
+
+/***
+ *    ███████╗██████╗ ██╗███╗   ██╗
+ *    ██╔════╝██╔══██╗██║████╗  ██║
+ *    ███████╗██████╔╝██║██╔██╗ ██║
+ *    ╚════██║██╔═══╝ ██║██║╚██╗██║
+ *    ███████║██║     ██║██║ ╚████║
+ *    ╚══════╝╚═╝     ╚═╝╚═╝  ╚═══╝
+ *                                 
+ */
+
 
   startSpinInterval(framerate){
     this.killSpinInterval();
@@ -297,107 +222,34 @@ export default class Rotater extends Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState){
-    if(prevState.framerate !== this.state.framerate){
-      this.startSpinInterval(this.state.framerate);
+  onSpinInterval(){
+    if(this.state.isSpinning){
+      this.checkPhysics(this.state.APMs, this.state.lastTime);
     }
 
-  }
-
-  componentDidMount(){
-    this.setFramerate(this.state.framerateSetting);
-  }
-
-
-
-
-  onLeftTouchStart(touchEvent){
-    // console.log('onLeftTouchStart', touchEvent.changedTouches);
-    try{
-      this.setState({ holdingButton: 'left' });
-    }catch(touchEvent){
-      console.error('problem with onLeftTouchStart:', touchEvent);
-    }
-  }
-
-  onLeftTouchEnd(touchEvent){
-    // console.log('onLeftTouchEnd', touchEvent);
-    touchEvent.preventDefault();
-    try{
-      if(this.state.holdingButton === 'left'){
-        this.stopHoldingButtons();
-      }
-    }catch(touchEvent){
-      console.error('problem with onLeftTouchEnd:', touchEvent);
-    }
-  }
-  onRightTouchStart(touchEvent){
-    // console.log('onRightTouchStart', touchEvent.changedTouches);
-    try{
-      this.setState({ holdingButton: 'right' });
-    }catch(touchEvent){
-      console.error('problem with onRightTouchStart:', touchEvent);
-    }
-  }
-
-  onRightTouchEnd(touchEvent){
-    // console.log('onRightTouchEnd', touchEvent);
-    touchEvent.preventDefault();
-    try{
-      if(this.state.holdingButton === 'right'){
-        this.stopHoldingButtons();
-      }
-    }catch(touchEvent){
-      console.error('problem with onRightTouchEnd:', touchEvent);
-    }
-  }
-
-
-
-
-
-  onLeftMouseDown(mouseEvent){
-    // console.log('<- down');
-    this.setState({ holdingButton: 'left' });
-  }
-
-  onLeftMouseUp(mouseEvent){
-    // console.log('<- up');
     if(this.state.holdingButton === 'left'){
-      this.stopHoldingButtons();
-    }
-  }
+      this.manualRotation(1);
 
-  onLeftMouseLeave(mouseEvent){
-    // console.log('<- leave');
-    if(this.state.holdingButton === 'left'){
-      this.stopHoldingButtons();
+    }else if(this.state.holdingButton === 'right'){
+      this.manualRotation(-1);
     }
   }
 
 
-  onRightMouseDown(mouseEvent){
-    // console.log('-> down');
-    this.setState({ holdingButton: 'right' });
-  }
 
-  onRightMouseUp(mouseEvent){
-    // console.log('-> up');
-    if(this.state.holdingButton === 'right'){
-      this.stopHoldingButtons();
-    }
-  }
 
-  onRightMouseLeave(mouseEvent){
-    // console.log('-> leave');
-    if(this.state.holdingButton === 'right'){
-      this.stopHoldingButtons();
-    }
-  }
 
-  stopHoldingButtons(){
-    this.setState({ holdingButton: null });
-  }
+
+/***
+ *    ███████╗██████╗  █████╗ ███╗   ███╗███████╗██████╗  █████╗ ████████╗███████╗
+ *    ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██╔════╝
+ *    █████╗  ██████╔╝███████║██╔████╔██║█████╗  ██████╔╝███████║   ██║   █████╗  
+ *    ██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██╔══██╗██╔══██║   ██║   ██╔══╝  
+ *    ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗██║  ██║██║  ██║   ██║   ███████╗
+ *    ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝
+ *                                                                                
+ */
+
 
   setFramerate(percValue){
     const framerate = this.getLogValues(percValue, MIN_FRAMERATE, MAX_FRAMERATE, true);
@@ -416,6 +268,143 @@ export default class Rotater extends Component {
       return parseInt(Math.exp(minValue + scale * percent));
     }else{
       return Math.exp(minValue + scale * percent);
+    }
+  }
+
+
+
+
+
+
+
+/***
+ *    ███████╗██╗   ██╗███████╗███╗   ██╗████████╗    ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
+ *    ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝    ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
+ *    █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║       ███████║███████║██╔██╗ ██║██║  ██║██║     █████╗  ██████╔╝███████╗
+ *    ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║       ██╔══██║██╔══██║██║╚██╗██║██║  ██║██║     ██╔══╝  ██╔══██╗╚════██║
+ *    ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║       ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
+ *    ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝       ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
+ *                                                                                                                      
+ */
+
+/*
+* Dragging the spin around
+*/
+  onRotaterDragStart(mouseOrTouchEvent){
+    // console.log('onRotaterDragStart', mouseOrTouchEvent.changedTouches);
+    try{
+      let startX;
+      if(mouseOrTouchEvent.changedTouches){
+        startX = mouseOrTouchEvent.changedTouches[0].clientX;
+      }else{
+        startX = mouseOrTouchEvent.clientX;
+      }
+
+      this.setState({ 
+        dragging: true,
+        startX: startX,
+        isSpinning:true
+      });
+
+    }catch(e){
+      console.error('problem with onRotaterDragStart:', e);
+    }
+  }
+
+  onRotaterDragMove(mouseOrTouchEvent){
+    // console.log('onRotaterDragMove', mouseOrTouchEvent.changedTouches);
+    if(this.state.dragging){
+      try{
+        let startX;
+        if(mouseOrTouchEvent.changedTouches){
+          startX = mouseOrTouchEvent.changedTouches[0].clientX;
+        }else{
+          startX = mouseOrTouchEvent.clientX;
+        }
+
+        this.onDragging(startX, this.state.startX);
+      }catch(e){
+        console.error('problem with onRotaterDragMove:', e);
+      }
+    }
+  }
+
+  onRotaterDragCancel(mouseOrTouchEvent){
+    try{
+      mouseOrTouchEvent.preventDefault();
+      this.stopDragging();
+    }catch(e){
+      console.error('problem with onRotaterDragCancel:', e);
+    }
+  }
+
+
+
+
+/*
+* Clicking and holding rotation buttons
+*/
+  onRotationButtonDown(mouseOrTouchEvent, direction){
+    this.setState({ holdingButton: direction });
+  }
+
+  onRotationButtonUp(mouseOrTouchEvent, direction){
+    try{
+      mouseOrTouchEvent.preventDefault();
+
+      if(this.state.holdingButton){
+        this.stopHoldingButtons();
+      }
+    }catch(e){
+      console.error('problem with onRotationButtonUp:', e);
+    }
+  }
+
+  stopHoldingButtons(){
+    this.setState({ holdingButton: null });
+  }
+
+
+
+
+
+
+/***
+ *    ██████╗ ███████╗███╗   ██╗██████╗ ███████╗██████╗ ██╗███╗   ██╗ ██████╗ 
+ *    ██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝██╔══██╗██║████╗  ██║██╔════╝ 
+ *    ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██████╔╝██║██╔██╗ ██║██║  ███╗
+ *    ██╔══██╗██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗██║██║╚██╗██║██║   ██║
+ *    ██║  ██║███████╗██║ ╚████║██████╔╝███████╗██║  ██║██║██║ ╚████║╚██████╔╝
+ *    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+ *                                                                            
+ */
+
+
+  renderImageContainer(curSpin, curSpinIdx){
+    if(curSpin){
+      return (
+        <div className="rotater-image-container" 
+             ref="imageContainer"
+             onMouseDown={e => this.onRotaterDragStart(e)}
+             onMouseMove={e => this.onRotaterDragMove(e)}
+             onMouseUp={e => this.onRotaterDragCancel(e)}
+             onMouseLeave={e => this.onRotaterDragCancel(e)} 
+
+             onTouchStart={e => this.onRotaterDragStart(e)}
+             onTouchMove={e => this.onRotaterDragMove(e)}
+             onTouchEnd={e => this.onRotaterDragCancel(e)}
+             onTouchCancel={e => this.onRotaterDragCancel(e)}>
+          {curSpin.images.map((si, idx) => (
+            <img draggable={false} key={idx} src={si} style={{ 'display': idx === curSpinIdx ? 'inline' : 'none' }}/>
+          ))}
+        </div>
+      )
+    }else{
+      return (
+        <div className="rotater-image-container">
+          <h2>{'loading...'}</h2>
+        </div>
+      )
     }
   }
 
@@ -441,22 +430,22 @@ export default class Rotater extends Component {
 
           <section className="bottom">
             <div  className="button left" 
-                  onTouchStart={e => this.onLeftTouchStart(e)}
-                  onTouchEnd={e => this.onLeftTouchEnd(e)}
-                  onMouseDown={e => this.onLeftMouseDown(e)}
-                  onMouseUp={e => this.onLeftMouseUp(e)}
-                  onMouseLeave={e => this.onLeftMouseLeave(e)} >
-            {'<'}
+                  onMouseDown={e => this.onRotationButtonDown(e, 'left')}
+                  onMouseUp={e => this.onRotationButtonUp(e, 'left')}
+                  onMouseLeave={e => this.onRotationButtonUp(e, 'left')} 
+                  onTouchStart={e => this.onRotationButtonDown(e, 'left')}
+                  onTouchEnd={e => this.onRotationButtonUp(e, 'left')} >
+              <p>{'<'}</p>
             </div>
             <div className="rotater-pedestal">
             </div>
             <div  className="button right" 
-                  onTouchStart={e => this.onRightTouchStart(e)}
-                  onTouchEnd={e => this.onRightTouchEnd(e)}
-                  onMouseDown={e => this.onRightMouseDown(e)}
-                  onMouseUp={e => this.onRightMouseUp(e)}
-                  onMouseLeave={e => this.onRightMouseLeave(e)} >
-            {'>'}
+                  onMouseDown={e => this.onRotationButtonDown(e, 'right')}
+                  onMouseUp={e => this.onRotationButtonUp(e, 'right')}
+                  onMouseLeave={e => this.onRotationButtonUp(e, 'right')} 
+                  onTouchStart={e => this.onRotationButtonDown(e, 'right')}
+                  onTouchEnd={e => this.onRotationButtonUp(e, 'right')} >
+              <p>{'>'}</p>
             </div>
           </section>
         </div>
