@@ -38,12 +38,23 @@ const store = {
     curSpin:{
       id: null,
       images: [],
+      physics: null,
       title: null
     }
   },
   actions: {
     toggleLoaded: ({ loaded }) => ({ loaded: !loaded }),
     setRotaterData: ({ spinDefinitions, defaultSpinId }, newData) => {
+      for(let spinId in newData.spins){
+        if(!newData.spins[spinId].physics){
+          newData.spins[spinId].physics = newData.defaultPhysics;
+        }
+
+        newData.spins[spinId].physics.speed = newData.spins[spinId].physics.speed * newData.spins[spinId].physics.multiplier;
+        newData.spins[spinId].physics.maxVx = newData.spins[spinId].physics.maxVx * newData.spins[spinId].physics.multiplier;
+        newData.spins[spinId].physics.friction = newData.spins[spinId].physics.friction * newData.spins[spinId].physics.multiplier;
+      };
+
       return{
         spinDefinitions: newData.spins,
         defaultSpinId: newData.defaultSpinId,
@@ -57,11 +68,12 @@ const store = {
       if(foundSpin.imagePattern){
         images = getImagesFromPattern(foundSpin.imagePattern)
       }
-      images = images || foundSpin.images;
-      
+
       const newCurSpin = {
         id: foundSpin.id,
+        direction: foundSpin.direction || 1,
         images: images,
+        physics: foundSpin.physics,
         title: foundSpin.title
       }
 

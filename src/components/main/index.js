@@ -42,7 +42,7 @@ class Main extends Component {
           <h1>{'Rotater'}</h1>
         </header>
         <section className="body">  
-          <Rotater curSpin={this.props.curSpin}/>
+          <Rotater curSpin={this.props.curSpin} framerate={10} />
         </section>
       </div>
     );

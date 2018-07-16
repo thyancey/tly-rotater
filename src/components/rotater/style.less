@@ -12,6 +12,11 @@
     transform:translateY(-50%);
 
     .rotater-image-container{
+      cursor: move; /* fallback if grab cursor is unsupported */
+      cursor: grab;
+      cursor: -moz-grab;
+      cursor: -webkit-grab;
+    
       min-height:5rem;
       text-align:center;
       max-height:80%;
@@ -30,7 +35,7 @@
       bottom:100%;
 
       text-align:center;
-      
+
       background-color:@color-grey-2;
       color:@color-green-3;
     }
