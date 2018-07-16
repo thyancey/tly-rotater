@@ -42,7 +42,7 @@ class Main extends Component {
           <h1>{'Rotater'}</h1>
         </header>
         <section className="body">  
-          <RotaterContainer curSpin={this.props.curSpin} />
+          <RotaterContainer  />
         </section>
       </div>
     );
@@ -52,6 +52,5 @@ class Main extends Component {
 
 export default connect(state => ({ 
   loaded: state.loaded,
-  defaultSpinId: state.defaultSpinId,
-  curSpin: state.curSpin
+  defaultSpinId: state.defaultSpinId
 }))(Main);

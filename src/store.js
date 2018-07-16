@@ -35,6 +35,7 @@ const store = {
     loaded:false,
     defaultSpinId: null,
     spinDefinitions:{},
+    spinIds:[],
     curSpin:{
       id: null,
       images: [],
@@ -44,9 +45,11 @@ const store = {
   },
   actions: {
     toggleLoaded: ({ loaded }) => ({ loaded: !loaded }),
-    setRotaterData: ({ spinDefinitions, defaultSpinId }, newData) => {
+    setRotaterData: ({ spinDefinitions, defaultSpinId, spinIds }, newData) => {
+      const newSpinIds = [];
       for(let spinId in newData.spins){
         newData.spins[spinId].id = spinId;
+        newSpinIds.push(spinId);
         //- get default physics values, with any overrides.
         newData.spins[spinId].physics = Object.assign({}, newData.defaultPhysics, newData.spins[spinId].physics);
       };
@@ -54,7 +57,8 @@ const store = {
       return{
         spinDefinitions: newData.spins,
         defaultSpinId: newData.defaultSpinId,
-        loaded:true
+        spinIds: newSpinIds,
+        loaded: true
       }
     },
     setCurrentSpin: ({ spinDefinitions, curSpin }, spinId) => {

@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { connect } from 'src/store';
+
 
 import Rotater from 'src/components/rotater';
 
@@ -8,15 +10,15 @@ require('./style.less');
 const MAX_FRAMERATE = 10;
 const MIN_FRAMERATE = 1000;
 
-export default class RotaterContainer extends Component {
+class RotaterContainer extends Component {
   constructor(){
     super();
     
     this.state = {
       holdingButton:null,
       framerate:0,
-      debug: false,
-      framerateSetting:.75
+      framerateSetting:.75,
+      debug: false
     }
   }
 
@@ -70,21 +72,40 @@ export default class RotaterContainer extends Component {
     this.setState({ debug: !this.state.debug });
   }
 
-  render() {
+  changeSpin(spinId){
+    this.props.actions.setCurrentSpin(spinId)
+  }
+
+  renderSettings(){
     const framerate = `${parseInt(1000 / this.state.framerate)} fps`;
 
+    return (
+      <div className="settings">
+        {this.props.curSpin.id ? (
+          <div className="setting settings-spin" >
+            <select value={this.props.curSpin.id} onChange={e => this.changeSpin(e.target.value)}>
+              {this.props.spinIds.map((sId, idx) => (<option key={idx} value={sId}>{sId}</option>))}
+            </select>
+          </div>) : null
+        }
+        <div className="setting settings-framerate">
+          <p>{`framerate: ${framerate}`}</p>
+          <input type='range' value={this.state.framerateSetting} min={0.0} max={1.0} step={0.01} onChange={e => this.setFramerate(e.target.value)} />
+        </div>
+        <div className="setting settings-debug" onClick={e => this.onToggleDebug()}>
+          <span>{'debug'}</span>
+          <input type="checkbox" label="debug" checked={this.state.debug} />
+        </div>
+      </div>
+    )
+  }
+
+  render() {
     return (
       <div className="rotater-container">
         <div className="rotater-stage">
           <section className="top">
-            <div className="setting settings-debug" onClick={e => this.onToggleDebug()}>
-              <span>{'debug'}</span>
-              <input type="checkbox" label="debug" checked={this.state.debug} />
-            </div>
-            <div className="setting settings-framerate">
-              <p>{`framerate: ${framerate}`}</p>
-              <input type='range' value={this.state.framerateSetting} min={0.0} max={1.0} step={0.01} onChange={e => this.setFramerate(e.target.value)} />
-            </div>
+            {this.renderSettings()}
           </section>
 
           <Rotater curSpin={this.props.curSpin}
@@ -117,3 +138,9 @@ export default class RotaterContainer extends Component {
     );
   }
 }
+
+
+export default connect(state => ({ 
+  spinIds: state.spinIds,
+  curSpin: state.curSpin
+}))(RotaterContainer);
