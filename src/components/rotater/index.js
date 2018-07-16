@@ -4,6 +4,9 @@ require('./style.less');
 
 const MAX_X = 300;
 
+const MAX_FRAMERATE = 10;
+const MIN_FRAMERATE = 1000;
+
 export default class Rotater extends Component {
   constructor(){
     super();
@@ -18,7 +21,9 @@ export default class Rotater extends Component {
       dragging: false,
       isSpinning: false,
       angle:0,
-      APMs:0
+      APMs:0,
+      framerate:0,
+      framerateSetting:.75
     }
   }
 
@@ -227,15 +232,11 @@ export default class Rotater extends Component {
     }
   }
 
-  startSpinInterval(){
+  startSpinInterval(framerate){
     this.killSpinInterval();
-    this.setState({
-      angle:0,
-      APMs:0
-    });
-    this.spinTicker = global.setInterval(() => {
+    this.spinInterval = global.setInterval(() => {
       this.onSpinInterval();
-    }, this.props.framerate);
+    }, framerate);
   }
 
   killSpinInterval(){
@@ -245,16 +246,15 @@ export default class Rotater extends Component {
     }
   }
 
-  componentDidUpdate(prevProps){
-    if(prevProps.framerate !== this.props.framerate){
-      console.log('restart interval!')
-      this.startSpinInterval();
+  componentDidUpdate(prevProps, prevState){
+    if(prevState.framerate !== this.state.framerate){
+      this.startSpinInterval(this.state.framerate);
     }
 
   }
 
   componentDidMount(){
-    this.startSpinInterval();
+    this.setFramerate(this.state.framerateSetting);
   }
 
   onLeftMouseDown(mouseEvent){
@@ -300,18 +300,42 @@ export default class Rotater extends Component {
     this.setState({ holdingButton: null });
   }
 
+  setFramerate(percValue){
+    const framerate = this.getLogValues(percValue, MIN_FRAMERATE, MAX_FRAMERATE, true);
+    this.setState({
+      framerateSetting: percValue,
+      framerate: framerate
+    });
+  }
+
+  getLogValues(percent, min, max, shouldRound){
+    const minValue = Math.log(min);
+    const maxValue = Math.log(max);
+    const scale = Math.log(max) - Math.log(min);
+
+    if(shouldRound){
+      return parseInt(Math.exp(minValue + scale * percent));
+    }else{
+      return Math.exp(minValue + scale * percent);
+    }
+  }
 
   render() {
-    const dispAngle = parseInt(this.state.angle) + '°';
-    const dispApm = `${parseInt(this.state.APMs * 1000)}°/s`;
+    const dispAngle = parseInt(this.state.angle) + ' degrees';
+    const dispApm = `${parseInt(this.state.APMs * 1000)} degrees/second`;
     const dispPercent = `dragging: ${parseInt(this.state.dragXPercent * 100)}%`;
+
+    const framerate = `${parseInt(1000 / this.state.framerate)} fps`;
 
     return (
       <div className="rotater">
         <div className="rotater-stage">
           <section className="top">
-            <h1>{`${dispAngle} at ${dispApm}`}</h1>
-            <h1>{dispPercent}</h1>
+            <p>{dispAngle}</p>
+            <p>{dispApm}</p>
+            <p>{dispPercent}</p>
+            <p>{`framerate: ${framerate}`}</p>
+            <input type='range' value={this.state.framerateSetting} min={0.0} max={1.0} step={0.01} onChange={e => this.setFramerate(e.target.value)} />
           </section>
 
           {this.renderImageContainer(this.props.curSpin, this.state.curIdx)}

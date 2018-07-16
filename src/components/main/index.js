@@ -10,7 +10,7 @@ class Main extends Component {
 
   loadStoreData(){
     // const url = process.env.PUBLIC_URL + '/data.json';
-    const url = '/data/rotater.json';
+    const url = './data/rotater.json';
     console.log(`reading app data from "${url}"`);
 
     fetch(url).then(response => {
