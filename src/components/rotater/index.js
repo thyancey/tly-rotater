@@ -19,14 +19,17 @@ export default class Rotater extends Component {
       isSpinning: false,
       canvasX: 0,
       canvasY: 0,
-      canvasWidth: 50,
-      canvasHeight: 50,
+      canvasWidth: 0,
+      canvasHeight: 0,
       canvasDown:false,
       canvasStart:null
     }
   }
 
   componentDidMount(){
+    global.addEventListener('resize', e => {
+      this.updateCanvasDimensions();
+    });
     this.startSpinInterval(this.props.framerate || DEFAULT_FRAMERATE);
     this.updateCanvasDimensions();
   }
@@ -42,14 +45,17 @@ export default class Rotater extends Component {
   }
 
   updateCanvasDimensions(){
-    const wrekt = this.refs.rotater.getBoundingClientRect();
-
-    this.setState({
-      canvasX: wrekt.x,
-      canvasY: wrekt.y,
-      canvasWidth: wrekt.width,
-      canvasHeight: wrekt.height
-    });
+    try{
+      const cRect = this.refs.rotater.getBoundingClientRect();
+      this.setState({
+        canvasX: cRect.x,
+        canvasY: cRect.y,
+        canvasWidth: cRect.width,
+        canvasHeight: cRect.height
+      });
+    }catch(e){
+      console.error('had trouble updating canvas bounds ', e);
+    }
   }
 
   resetSpin(){
@@ -110,12 +116,12 @@ export default class Rotater extends Component {
 
 
 /***
- *    ██████╗ ██╗  ██╗██╗   ██╗███████╗██╗ ██████╗███████╗     ██████╗ █████╗ ██╗      ██████╗
- *    ██╔══██╗██║  ██║╚██╗ ██╔╝██╔════╝██║██╔════╝██╔════╝    ██╔════╝██╔══██╗██║     ██╔════╝
- *    ██████╔╝███████║ ╚████╔╝ ███████╗██║██║     ███████╗    ██║     ███████║██║     ██║     
- *    ██╔═══╝ ██╔══██║  ╚██╔╝  ╚════██║██║██║     ╚════██║    ██║     ██╔══██║██║     ██║     
- *    ██║     ██║  ██║   ██║   ███████║██║╚██████╗███████║    ╚██████╗██║  ██║███████╗╚██████╗
- *    ╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝ ╚═════╝╚══════╝     ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝
+ *    ██████╗ ██╗  ██╗██╗   ██╗███████╗██╗ ██████╗███████╗ 
+ *    ██╔══██╗██║  ██║╚██╗ ██╔╝██╔════╝██║██╔════╝██╔════╝ 
+ *    ██████╔╝███████║ ╚████╔╝ ███████╗██║██║     ███████╗ 
+ *    ██╔═══╝ ██╔══██║  ╚██╔╝  ╚════██║██║██║     ╚════██║ 
+ *    ██║     ██║  ██║   ██║   ███████║██║╚██████╗███████║ 
+ *    ╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝ ╚═════╝╚══════╝ 
  *                                                                                            
  */
 
@@ -390,14 +396,15 @@ export default class Rotater extends Component {
         this.clearCanvas();
         const ctx = this.refs.canvas.getContext('2d');
         ctx.lineCap='round';
-        ctx.lineWidth=5;
+        ctx.lineWidth=3;
         ctx.strokeStyle = 'rgba(250,250,250,.5)';
+        ctx.setLineDash([5, 10]);
 
         ctx.beginPath();
         ctx.moveTo(this.state.canvasStartX, this.state.canvasStartY);
         ctx.lineTo(startX - this.state.canvasX, startY - this.state.canvasY);
-
         ctx.stroke();
+
       }catch(mouseOrTouchEvent){
         console.error('problem with onCanvasMove:', mouseOrTouchEvent);
       }
@@ -451,8 +458,11 @@ export default class Rotater extends Component {
   }
 
   render() {
+    const style = 'style-responsive';
+    // const style = 'style-fit';
+
     return (
-      <div  className="rotater" 
+      <div  className={`rotater ${style}`} 
             ref="rotater"
             onMouseDown={e => this.onRotaterDragStart(e)}
             onMouseMove={e => this.onRotaterDragMove(e)}
@@ -479,9 +489,11 @@ export default class Rotater extends Component {
                       onTouchCancel={e => this.onCanvasCancel(e)} >
               </canvas>
         {this.props.debug ? this.renderDebugContainer() : null }
-        {this.props.curSpin.images.map((si, idx) => (
-          <img draggable={false} key={idx} src={si} style={{ 'display': idx === this.state.curIdx ? 'inline' : 'none' }}/>
-        ))}
+        <div className="rotater-images">
+          {this.props.curSpin.images.map((si, idx) => (
+            <img draggable={false} key={idx} src={si} style={{ 'display': idx === this.state.curIdx ? 'inline' : 'none' }}/>
+          ))}
+        </div>
       </div>
     );
   }

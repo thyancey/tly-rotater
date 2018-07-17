@@ -3,8 +3,8 @@
 
 canvas{
   position:absolute;
-  left:10%;
-  z-index:9999999;
+  left:0;
+  z-index:1;
 }
 
 .rotater{
@@ -12,12 +12,9 @@ canvas{
   cursor: grab;
   cursor: -moz-grab;
   cursor: -webkit-grab;
+}
 
-  text-align:center;
-  img{
-    max-width:100%;
-  }
-
+.rotater{
   .rotater-debug{
     pointer-events:none;
     position: absolute;
@@ -46,6 +43,36 @@ canvas{
       background-color: white;
       z-index:-1;
       opacity:.3;
+    }
+  }
+}
+
+
+.rotater.style-responsive{
+  position:relative;
+  text-align:center;
+  height:100%;
+
+  .rotater-images{
+    img{
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%, -50%);
+      max-width:100%;
+      max-height:100%;
+    }
+  }
+}
+
+
+.rotater.style-fit{
+  position:relative;
+  text-align:center;
+
+  .rotater-images{
+    img{
+      max-width:100%;
     }
   }
 }

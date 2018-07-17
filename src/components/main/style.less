@@ -15,11 +15,11 @@
   }
 }
 
-
 .rotater-stage{
   width:100%;
 
   position:absolute;
+  height:~"calc(100% - 12rem)";
   top:50%;
   transform:translateY(-50%);
 
@@ -32,6 +32,8 @@
   }
 
   .section-spin{
+    height:100%;
+
     >*{
       display:inline-block;
       vertical-align:middle;
@@ -44,7 +46,7 @@
     }
     .rotater{
       min-height:5rem;
-      max-height:80%;
+      // max-height:80%;
       width:80%;
     }
   }
@@ -147,6 +149,23 @@
     &:hover{
       text-decoration:underline;
       color:@color-green-4;
+    }
+  }
+}
+
+
+.style-fit{
+  .rotater-stage{
+    .section-spin{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      width:100%;
+      height:auto;
+    }
+
+    .select-spin{
+      top:100%;
     }
   }
 }
