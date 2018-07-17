@@ -79,6 +79,9 @@ class RotaterContainer extends Component {
     return (
       <header>
         <h1>{'Rotater'}</h1>
+        <div id="holla">
+          <a href="http://www.thomasyancey.com" target="_blank">{'see some of my other stuff'}</a>
+        </div>
         <section className="settings">
           <div className="settings-button" onMouseEnter={e => this.onToggleSettings(e, true)} >
             <h4>{'Settings'}</h4>

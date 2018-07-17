@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 require('./style.less');
+require('./theme.less');
 const DEFAULT_FRAMERATE = 33;
 
 export default class Rotater extends Component {
@@ -27,11 +28,16 @@ export default class Rotater extends Component {
   }
 
   componentDidMount(){
-    global.addEventListener('resize', e => {
-      this.updateCanvasDimensions();
-    });
+    this.resizeListenerHandler = () => { this.updateCanvasDimensions() };
+
+    global.addEventListener('resize', this.resizeListenerHandler);
     this.startSpinInterval(this.props.framerate || DEFAULT_FRAMERATE);
-    this.updateCanvasDimensions();
+  }
+
+  componentWillUnmount(){
+    this.killSpinInterval();
+    this.killLoadTimeout();
+    global.removeEventListener('resize', this.resizeListenerHandler);
   }
 
   componentDidUpdate(prevProps, prevState){
@@ -42,6 +48,17 @@ export default class Rotater extends Component {
     if(prevProps.curSpin !== this.props.curSpin){
       this.resetSpin();
     }
+
+    if(prevState.loaded !== this.state.loaded){
+      if(this.props.onLoadChange){
+        this.props.onLoadChange(this.state.loaded);
+      }
+      this.onLoadComplete();
+    }
+  }
+
+  onLoadComplete(){
+    this.updateCanvasDimensions();
   }
 
   updateCanvasDimensions(){
@@ -66,12 +83,12 @@ export default class Rotater extends Component {
       angle: 0,
       APMs: 0,
       dragging: false,
-      isSpinning: false
+      isSpinning: false,
+      loaded: false,
+      loadedPercent: 0
     });
 
-    global.setTimeout(e => {
-      this.updateCanvasDimensions();
-    }, 500);
+    this.startLoadTimeout();
   }
 
 
@@ -424,6 +441,41 @@ export default class Rotater extends Component {
     });
   }
 
+  killLoadTimeout(){
+    if(this.loadTimeout){
+      global.clearTimeout(this.loadTimeout);
+      this.loadTimeout = null;
+    }
+  }
+
+  startLoadTimeout(){
+    this.killLoadTimeout();
+
+    this.loadTimeout = global.setTimeout(() => {
+      this.onLoadTimeout();
+    }, 50)
+  }
+
+  onLoadTimeout(){
+    this.killLoadTimeout();
+
+    const images = Array.from(document.querySelectorAll('.rotater-images img'));
+    const loadedImages = images.filter((i, idx) => (i.complete));
+    const loadedPercent = Math.round((loadedImages.length / images.length) * 100);
+
+    // console.log(`${loadedImages.length}/${images.length} loaded`);
+    if(loadedPercent === 100){
+      this.setState({ 
+        loaded: true,
+        loadedPercent: 100
+      });
+    }else{
+      this.setState({ loadedPercent: loadedPercent });
+      this.startLoadTimeout();
+    }
+
+  }
+
 
 /***
  *    ██████╗ ███████╗███╗   ██╗██████╗ ███████╗██████╗ ██╗███╗   ██╗ ██████╗ 
@@ -461,6 +513,7 @@ export default class Rotater extends Component {
     const style = 'style-responsive';
     // const style = 'style-fit';
 
+
     return (
       <div  className={`rotater ${style}`} 
             ref="rotater"
@@ -474,20 +527,26 @@ export default class Rotater extends Component {
             onTouchEnd={e => this.onRotaterDragCancel(e)}
             onTouchCancel={e => this.onRotaterDragCancel(e)}>
 
-              <canvas id="canvas" 
-                      ref="canvas" 
-                      width={this.state.canvasWidth} 
-                      height={this.state.canvasHeight}
-                      onMouseDown={e => this.onCanvasStart(e)}
-                      onMouseMove={e => this.onCanvasMove(e)}
-                      onMouseUp={e => this.onCanvasCancel(e)}
-                      onMouseLeave={e => this.onCanvasCancel(e)}  
+        <div className={`rotater-loader ${this.state.loaded ? '' : 'loading'}`}>
+          <div className="rotater-loader-textgroup">
+            <p>{'LOADING'}</p>
+            <p>{`${this.state.loadedPercent || 0}%`}</p>
+          </div>
+        </div>
+        <canvas id="canvas" 
+                ref="canvas" 
+                width={this.state.canvasWidth} 
+                height={this.state.canvasHeight}
+                onMouseDown={e => this.onCanvasStart(e)}
+                onMouseMove={e => this.onCanvasMove(e)}
+                onMouseUp={e => this.onCanvasCancel(e)}
+                onMouseLeave={e => this.onCanvasCancel(e)}  
 
-                      onTouchStart={e => this.onCanvasStart(e)}
-                      onTouchMove={e => this.onCanvasMove(e)}
-                      onTouchEnd={e => this.onCanvasCancel(e)}
-                      onTouchCancel={e => this.onCanvasCancel(e)} >
-              </canvas>
+                onTouchStart={e => this.onCanvasStart(e)}
+                onTouchMove={e => this.onCanvasMove(e)}
+                onTouchEnd={e => this.onCanvasCancel(e)}
+                onTouchCancel={e => this.onCanvasCancel(e)} >
+        </canvas>
         {this.props.debug ? this.renderDebugContainer() : null }
         <div className="rotater-images">
           {this.props.curSpin.images.map((si, idx) => (

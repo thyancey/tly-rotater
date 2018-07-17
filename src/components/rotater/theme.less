@@ -1,0 +1,39 @@
+/* override these styles when customizing */
+
+.rotater-loader{
+  background-color:black;
+  color:white;
+  transition: opacity .5s;
+
+  &.loading{
+    transition: opacity .5s;
+  }
+}
+
+canvas{
+  // border:2px solid red;
+}
+
+.rotater{
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+.rotater-debug{
+  color: black;
+  text-align: left;
+  padding: 1rem;
+  font-family:monospace;
+  font-size:1.5rem;
+
+  ul{
+    padding-left:2rem;
+    margin:0;
+  }
+  .rotater-debug-bg{
+    background-color: white;
+    opacity:.3;
+  }
+}

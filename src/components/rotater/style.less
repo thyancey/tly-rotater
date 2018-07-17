@@ -8,10 +8,27 @@ canvas{
 }
 
 .rotater{
-  cursor: move; /* fallback if grab cursor is unsupported */
-  cursor: grab;
-  cursor: -moz-grab;
-  cursor: -webkit-grab;
+  .rotater-loader{
+    position:absolute;
+    display:table;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:1;
+    opacity:0;
+
+    &.loading{
+      opacity:1;
+    }
+
+    .rotater-loader-textgroup{
+      display:table-cell;
+      vertical-align:middle;
+      text-align:center;
+    }
+  }
 }
 
 .rotater{
@@ -21,29 +38,15 @@ canvas{
     left: 0;
     top: 0;
     z-index: 1;
-    color: black;
-    text-align: left;
-    padding: 1rem;
+  }
+  .rotater-debug-bg{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
 
-    font-family:monospace;
-    font-size:1.5rem;
-
-    ul{
-      padding-left:2rem;
-      margin:0;
-    }
-
-    .rotater-debug-bg{
-      position:absolute;
-      left:0;
-      top:0;
-      width:100%;
-      height:100%;
-
-      background-color: white;
-      z-index:-1;
-      opacity:.3;
-    }
+    z-index:-1;
   }
 }
 

@@ -35,7 +35,7 @@ const store = {
     loaded:false,
     defaultSpinId: null,
     spinDefinitions:{},
-    spinIds:[],
+    spinLabels:[],
     framerate:0,
     settings: false,
     debug: true,
@@ -53,11 +53,14 @@ const store = {
     setUseAcceleration: ({ useAcceleration }, newVal) => ({ useAcceleration: newVal }),
     setDebug: ({ debug }, newVal) => ({ debug: newVal }),
     setSettings: ({ settings }, newVal) => ({ settings: newVal }),
-    setRotaterData: ({ spinDefinitions, defaultSpinId, spinIds }, newData) => {
-      const newSpinIds = [];
+    setRotaterData: ({ spinDefinitions, defaultSpinId, spinLabels }, newData) => {
+      const newSpinLabels = [];
       for(let spinId in newData.spins){
         newData.spins[spinId].id = spinId;
-        newSpinIds.push(spinId);
+        newSpinLabels.push({
+          id: spinId,
+          title: newData.spins[spinId].title
+        });
         //- get default physics values, with any overrides.
         newData.spins[spinId].physics = Object.assign({}, newData.defaultPhysics, newData.spins[spinId].physics);
       };
@@ -65,7 +68,7 @@ const store = {
       return{
         spinDefinitions: newData.spins,
         defaultSpinId: newData.defaultSpinId,
-        spinIds: newSpinIds,
+        spinLabels: newSpinLabels,
         loaded: true
       }
     },

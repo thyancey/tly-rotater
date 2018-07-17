@@ -27,7 +27,7 @@ class RotaterContainer extends Component {
                     }, 
                     err => console.error("Error fretching url", err)) //- bad url responds with 200/ok? so this doesnt get thrown
               .then(json => {
-                      console.log(json)
+                      // console.log(json);
                       this.props.actions.setRotaterData(json);
                       return true;
                     }, 
@@ -94,7 +94,7 @@ class RotaterContainer extends Component {
         <div className="select-spin" >
           <Icon_DropDown />
           <select value={this.props.curSpin.id} onChange={e => this.changeSpin(e.target.value)}>
-            {this.props.spinIds.map((sId, idx) => (<option key={idx} value={sId}>{sId}</option>))}
+            {this.props.spinLabels.map((sLabel, idx) => (<option key={idx} value={sLabel.id}>{sLabel.title}</option>))}
           </select>
         </div>
       );
@@ -127,9 +127,6 @@ class RotaterContainer extends Component {
             </section>
             {this.renderSpinSelection()}
           </div>
-          <div id="holla">
-            <a href="http://www.thomasyancey.com" target="_blank">{'...see some of my other stuff'}</a>
-          </div>
         </section>
       </div>
     );
@@ -140,7 +137,7 @@ class RotaterContainer extends Component {
 export default connect(state => ({ 
   loaded: state.loaded,
   defaultSpinId: state.defaultSpinId,
-  spinIds: state.spinIds,
+  spinLabels: state.spinLabels,
   debug: state.debug,
   settings: state.settings,
   framerate: state.framerate,

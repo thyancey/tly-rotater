@@ -1,6 +1,10 @@
 @import "~themes/variables.less";
 
-@header-height:4rem;
+
+.rotater-loader{
+  background-color:@color-grey-3;
+  color:@color-green-3;
+}
 
 .main{
   .body{
@@ -10,7 +14,7 @@
     width:100%;
     height:~"calc(100% - @{header-height})";
 
-    color:@color-green-3;
+    color:@color-green-4;
     background-color:@color-grey-3;
   }
 }
@@ -46,7 +50,6 @@
     }
     .rotater{
       min-height:5rem;
-      // max-height:80%;
       width:80%;
     }
   }
@@ -139,21 +142,22 @@
 #holla{
   position:fixed;
   right:1rem;
-  bottom:.25rem;
+  top:4rem;
   a{
     display:inline;
     font-size:1.3rem;
-    text-decoration:none;
+    // text-decoration:none;
     color:@color-grey-4;
 
     &:hover{
-      text-decoration:underline;
+      // text-decoration:underline;
       color:@color-green-4;
     }
   }
 }
 
 
+/* not used, just an example */
 .style-fit{
   .rotater-stage{
     .section-spin{
