@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 
 require('./style.less');
-
 const DEFAULT_FRAMERATE = 33;
 
 export default class Rotater extends Component {
@@ -17,12 +16,19 @@ export default class Rotater extends Component {
       angle:0,
       APMs:0,
       dragging: false,
-      isSpinning: false
+      isSpinning: false,
+      canvasX: 0,
+      canvasY: 0,
+      canvasWidth: 50,
+      canvasHeight: 50,
+      canvasDown:false,
+      canvasStart:null
     }
   }
 
   componentDidMount(){
     this.startSpinInterval(this.props.framerate || DEFAULT_FRAMERATE);
+    this.updateCanvasDimensions();
   }
 
   componentDidUpdate(prevProps, prevState){
@@ -35,6 +41,17 @@ export default class Rotater extends Component {
     }
   }
 
+  updateCanvasDimensions(){
+    const wrekt = this.refs.rotater.getBoundingClientRect();
+
+    this.setState({
+      canvasX: wrekt.x,
+      canvasY: wrekt.y,
+      canvasWidth: wrekt.width,
+      canvasHeight: wrekt.height
+    });
+  }
+
   resetSpin(){
     this.setState({
       curIdx: 0,
@@ -45,6 +62,10 @@ export default class Rotater extends Component {
       dragging: false,
       isSpinning: false
     });
+
+    global.setTimeout(e => {
+      this.updateCanvasDimensions();
+    }, 500);
   }
 
 
@@ -260,6 +281,12 @@ export default class Rotater extends Component {
 
 
 
+
+
+
+
+
+
 /***
  *    ███████╗██╗   ██╗███████╗███╗   ██╗████████╗    ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
  *    ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝    ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
@@ -322,7 +349,73 @@ export default class Rotater extends Component {
     }
   }
 
+  onCanvasStart(mouseOrTouchEvent){
+    // console.log('START')
+    try{
+      let startX;
+      let startY;
 
+      if(mouseOrTouchEvent.changedTouches){
+        startX = mouseOrTouchEvent.changedTouches[0].clientX;
+        startY = mouseOrTouchEvent.changedTouches[0].clientY;
+      }else{
+        startX = mouseOrTouchEvent.clientX;
+        startY = mouseOrTouchEvent.clientY;
+      }
+
+      this.setState({
+        canvasDown: true,
+        canvasStartX: startX - this.state.canvasX,
+        canvasStartY: startY - this.state.canvasY
+      });
+    }catch(e){
+      console.error('problem with onCanvasDown:', mouseOrTouchEvent);
+    }
+  }
+
+
+  onCanvasMove(mouseOrTouchEvent){
+    if(this.state.canvasDown){
+      try{
+        let startX;
+        let startY;
+        if(mouseOrTouchEvent.changedTouches){
+          startX = mouseOrTouchEvent.changedTouches[0].clientX;
+          startY = mouseOrTouchEvent.changedTouches[0].clientY;
+        }else{
+          startX = mouseOrTouchEvent.clientX;
+          startY = mouseOrTouchEvent.clientY;
+        }
+
+        this.clearCanvas();
+        const ctx = this.refs.canvas.getContext('2d');
+        ctx.lineCap='round';
+        ctx.lineWidth=5;
+        ctx.strokeStyle = 'rgba(250,250,250,.5)';
+
+        ctx.beginPath();
+        ctx.moveTo(this.state.canvasStartX, this.state.canvasStartY);
+        ctx.lineTo(startX - this.state.canvasX, startY - this.state.canvasY);
+
+        ctx.stroke();
+      }catch(mouseOrTouchEvent){
+        console.error('problem with onCanvasMove:', mouseOrTouchEvent);
+      }
+    }
+  }
+
+  clearCanvas(){
+    const ctx = this.refs.canvas.getContext('2d');
+    ctx.clearRect(0, 0, this.state.canvasWidth, this.state.canvasHeight);
+  }
+
+  onCanvasCancel(){
+    this.clearCanvas();
+    this.setState({
+      canvasDown: false,
+      canvasStart:null
+    });
+  }
 
 
 /***
@@ -359,17 +452,32 @@ export default class Rotater extends Component {
 
   render() {
     return (
-      <div className="rotater" 
-           ref="rotater"
-           onMouseDown={e => this.onRotaterDragStart(e)}
-           onMouseMove={e => this.onRotaterDragMove(e)}
-           onMouseUp={e => this.onRotaterDragCancel(e)}
-           onMouseLeave={e => this.onRotaterDragCancel(e)} 
+      <div  className="rotater" 
+            ref="rotater"
+            onMouseDown={e => this.onRotaterDragStart(e)}
+            onMouseMove={e => this.onRotaterDragMove(e)}
+            onMouseUp={e => this.onRotaterDragCancel(e)}
+            onMouseLeave={e => this.onRotaterDragCancel(e)} 
 
-           onTouchStart={e => this.onRotaterDragStart(e)}
-           onTouchMove={e => this.onRotaterDragMove(e)}
-           onTouchEnd={e => this.onRotaterDragCancel(e)}
-           onTouchCancel={e => this.onRotaterDragCancel(e)}>
+            onTouchStart={e => this.onRotaterDragStart(e)}
+            onTouchMove={e => this.onRotaterDragMove(e)}
+            onTouchEnd={e => this.onRotaterDragCancel(e)}
+            onTouchCancel={e => this.onRotaterDragCancel(e)}>
+
+              <canvas id="canvas" 
+                      ref="canvas" 
+                      width={this.state.canvasWidth} 
+                      height={this.state.canvasHeight}
+                      onMouseDown={e => this.onCanvasStart(e)}
+                      onMouseMove={e => this.onCanvasMove(e)}
+                      onMouseUp={e => this.onCanvasCancel(e)}
+                      onMouseLeave={e => this.onCanvasCancel(e)}  
+
+                      onTouchStart={e => this.onCanvasStart(e)}
+                      onTouchMove={e => this.onCanvasMove(e)}
+                      onTouchEnd={e => this.onCanvasCancel(e)}
+                      onTouchCancel={e => this.onCanvasCancel(e)} >
+              </canvas>
         {this.props.debug ? this.renderDebugContainer() : null }
         {this.props.curSpin.images.map((si, idx) => (
           <img draggable={false} key={idx} src={si} style={{ 'display': idx === this.state.curIdx ? 'inline' : 'none' }}/>
