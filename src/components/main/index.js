@@ -107,11 +107,8 @@ class RotaterContainer extends Component {
     return (
       <div className="main">
         <Header /> 
-        <section className="body" onMouseEnter={e => this.closeSettings(e)} >  
+        <section className="body" onMouseEnter={e => this.closeSettings(e)} onTouchStart={e => this.closeSettings(e)}>  
           <div className="rotater-stage">
-            <section className="section-title">
-              <h2>{this.props.curSpin.title}</h2>
-            </section>
             <section className="section-spin">
               <div className="button-container">
                 {this.renderManualButton('left', (<Icon_RotateRight/>))}
@@ -128,6 +125,9 @@ class RotaterContainer extends Component {
             {this.renderSpinSelection()}
           </div>
         </section>
+        <div id="holla">
+          <a href="http://www.thomasyancey.com" target="_blank">{'...see some of my other stuff'}</a>
+        </div>
       </div>
     );
   }
