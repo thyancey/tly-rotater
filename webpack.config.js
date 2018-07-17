@@ -20,6 +20,21 @@ module.exports = {
       {
         test: /\.less$/,
         use: ["style-loader", "css-loader", "less-loader"],
+      },
+      {
+        test: /\.(png|jpg)$/,
+        use: [
+          {
+            loader: "url-loader",
+            options:{
+              limit:8192
+            }
+          }
+        ]
+      },
+      {
+        test: /\.svg$/,
+        use: ["react-svg-loader"]
       }
     ]
   },

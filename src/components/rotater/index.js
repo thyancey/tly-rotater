@@ -8,6 +8,7 @@ export default class Rotater extends Component {
     super();
     
     this.state = {
+      spinId: null,
       startX: 0,
       dragXPercent: 0,
       curIdx: 0,
@@ -27,8 +28,23 @@ export default class Rotater extends Component {
     if(prevProps.framerate !== this.props.framerate){
       this.startSpinInterval(this.props.framerate);
     }
+
+    if(prevProps.curSpin !== this.props.curSpin){
+      this.resetSpin();
+    }
   }
 
+  resetSpin(){
+    this.setState({
+      curIdx: 0,
+      startX: 0,
+      dragXPercent: 0,
+      angle: 0,
+      APMs: 0,
+      dragging: false,
+      isSpinning: false
+    });
+  }
 
 
 
@@ -81,15 +97,30 @@ export default class Rotater extends Component {
  *                                                                                            
  */
 
-  checkPhysics(APMs, lastTime){
-    //- grab junk from definition
+
+  getAdvancedSpeedup(timeDiff, APMs){
     const ph = this.props.curSpin.physics;
     const speed = ph.speed;
     const accel = ph.accel;
+    const spinDirection = this.props.curSpin.direction;
+    const friction = ph.friction;
+    const dragXPercent = this.state.dragXPercent;
+
+    const speedChange = (dragXPercent * accel) * speed * spinDirection;
+
+    for(let i = 0; i < timeDiff; i++){
+      APMs += speedChange;
+      APMs /= friction;
+    }
+    return APMs;
+  }
+
+  checkPhysics(APMs, lastTime){
+    //- grab junk from definition
+    const ph = this.props.curSpin.physics;
     const friction = ph.friction;
     const maxAPMs = ph.maxAPMs;
     const minAPMs = ph.minAPMs;
-    const spinDirection = this.props.curSpin.direction;
 
 
     //- calc time elapsed since last checkPhysics cycle
@@ -100,16 +131,14 @@ export default class Rotater extends Component {
     }
     const timeDiff = nowTime - lastTime;
 
-  //- TODO: this could probably improved with calculus? I dunno it's been a real long time since I've done any of that.
+  //- TODO: for loops here could probably improved with calculus? I dunno it's been a real long time since I've done any of that.
     //- calc amount of change per millisecond cycle
-    const speedChange = (this.state.dragXPercent * accel) * speed * spinDirection;
 
-    //- now apply for all milliseconds that have passed.
     if(this.state.dragging){
-      for(let i = 0; i < timeDiff; i++){
-        APMs += speedChange;
-        //- friction here is a little more realistic, but takes a lot more value tweaking to get max speed, so just dont use it.
-        // APMs /= friction;
+      if(this.props.useAcceleration){
+        APMs = this.getAdvancedSpeedup(timeDiff, APMs);
+      }else{
+        APMs = this.state.dragXPercent * maxAPMs;
       }
     }else{
       for(let i = 0; i < timeDiff; i++){
@@ -176,7 +205,7 @@ export default class Rotater extends Component {
   }
 
   manualRotation(angleChange){
-    const newAngle = this.state.angle + (angleChange * this.props.curSpin.direction);
+    const newAngle = this.state.angle + (angleChange * this.props.curSpin.direction * this.props.curSpin.physics.manualSpeed);
     const idx = this.getFrameAtAngle(newAngle);
 
     this.setState({
