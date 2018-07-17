@@ -36,6 +36,10 @@ const store = {
     defaultSpinId: null,
     spinDefinitions:{},
     spinIds:[],
+    framerate:0,
+    settings: false,
+    debug: true,
+    useAcceleration: false,
     curSpin:{
       id: null,
       images: [],
@@ -45,6 +49,10 @@ const store = {
   },
   actions: {
     toggleLoaded: ({ loaded }) => ({ loaded: !loaded }),
+    setFramerate: ({ framerate }, newVal) => ({ framerate: newVal }),
+    setUseAcceleration: ({ useAcceleration }, newVal) => ({ useAcceleration: newVal }),
+    setDebug: ({ debug }, newVal) => ({ debug: newVal }),
+    setSettings: ({ settings }, newVal) => ({ settings: newVal }),
     setRotaterData: ({ spinDefinitions, defaultSpinId, spinIds }, newData) => {
       const newSpinIds = [];
       for(let spinId in newData.spins){

@@ -1,35 +1,24 @@
 import React, { Component } from 'react';
 import { connect } from 'src/store';
-import Icon_Settings from '../../images/settings.svg';
 import Icon_DropDown from '../../images/drop-down.svg';
 import Icon_RotateLeft from '../../images/rotate-left.svg';
 import Icon_RotateRight from '../../images/rotate-right.svg';
 
+import Header from 'src/components/header';
 import Rotater from 'src/components/rotater';
 
 require('./style.less');
-
-
-const MAX_FRAMERATE = 10;
-const MIN_FRAMERATE = 1000;
 
 class RotaterContainer extends Component {
   constructor(){
     super();
     
     this.state = {
-      holdingButton:null,
-      framerate:0,
-      framerateSetting:.75,
-      debug: true,
-      acceleration: false,
-      settings: false
+      holdingButton:null
     }
   }
 
-
   loadStoreData(){
-    // const url = process.env.PUBLIC_URL + '/data.json';
     const url = './data/rotater.json';
     console.log(`reading app data from "${url}"`);
 
@@ -53,31 +42,8 @@ class RotaterContainer extends Component {
   componentDidUpdate(prevProps){
     if(this.props.loaded && !prevProps.loaded){
       this.props.actions.setCurrentSpin(this.props.defaultSpinId);
-      this.setFramerate(this.state.framerateSetting);
     }
   }
-
-
-  setFramerate(percValue){
-    const framerate = this.getLogValues(percValue, MIN_FRAMERATE, MAX_FRAMERATE, true);
-    this.setState({
-      framerateSetting: percValue,
-      framerate: framerate
-    });
-  }
-
-  getLogValues(percent, min, max, shouldRound){
-    const minValue = Math.log(min);
-    const maxValue = Math.log(max);
-    const scale = Math.log(max) - Math.log(min);
-
-    if(shouldRound){
-      return parseInt(Math.exp(minValue + scale * percent));
-    }else{
-      return Math.exp(minValue + scale * percent);
-    }
-  }
-
 
 
   onRotationButtonDown(mouseOrTouchEvent, direction){
@@ -100,57 +66,13 @@ class RotaterContainer extends Component {
     this.setState({ holdingButton: null });
   }
 
-  onToggle(e, key, force){
-    e.preventDefault();
-
-    if(force !== undefined){
-      this.setState({ [key]: force });
-    }else{
-      this.setState({ [key]: !this.state[key] });
-    }
-  }
 
   changeSpin(spinId){
     this.props.actions.setCurrentSpin(spinId)
   }
 
-  onSettingsLeave(){
-    console.log('settings leave');
-    this.setState({settings: false});
-  }
-
-  renderSettings(){
-    const framerate = `${parseInt(1000 / this.state.framerate)} fps`;
-
-    return (
-      <section className="settings">
-        <div className="settings-button" onMouseEnter={e => this.onToggle(e, 'settings', true)} >
-          <h4>{'Settings'}</h4>
-          <div>
-            <Icon_Settings />
-          </div>
-        </div>
-        <div className={`settings-body ${this.state.settings ? '' : 'hidden'}`} >
-          <div className="settings-description">
-            <p>{'Rotater is a React component that takes a list of images and simulates a rotating object. It works well with files exported from 3D programs, but really shines with handmade image sequences!'}</p>
-          </div>
-          <div className="settings-menu">
-            <div className="setting setting-slider">
-              <p>{`framerate: ${framerate}`}</p>
-              <input type='range' value={this.state.framerateSetting} min={0.0} max={1.0} step={0.01} onChange={e => this.setFramerate(e.target.value)} />
-            </div>
-            <div className="setting setting-checkbox" onClick={e => this.onToggle(e, 'debug')}>
-              <span>{'debug'}</span>
-              <input type="checkbox" label="debug" checked={this.state.debug} onChange={e => {}}/>
-            </div>
-            <div className="setting setting-checkbox" onClick={e => this.onToggle(e, 'acceleration')}>
-              <span>{'acceleration'}</span>
-              <input type="checkbox" label="acceleration" checked={this.state.acceleration} onChange={e => {}}/>
-            </div>
-          </div>
-        </div>
-      </section>
-    )
+  closeSettings(e){
+    this.props.actions.setSettings(false);
   }
 
   renderManualButton(buttonDirection, icon){
@@ -166,7 +88,7 @@ class RotaterContainer extends Component {
    );
   }
 
-  renderDropdown(){
+  renderSpinSelection(){
     if(this.props.curSpin.id){
       return(
         <div className="select-spin" >
@@ -184,34 +106,30 @@ class RotaterContainer extends Component {
   render() {
     return (
       <div className="main">
-        <header>
-          <h1>{'Rotater'}</h1>
-          {this.renderSettings()}
-        </header>
-        <section className="body" onMouseEnter={e => this.onToggle(e, 'settings', false)} >  
-
+        <Header /> 
+        <section className="body" onMouseEnter={e => this.closeSettings(e)} >  
           <div className="rotater-stage">
-
-            <section className="middle">
+            <section className="section-title">
+              <h2>{this.props.curSpin.title}</h2>
+            </section>
+            <section className="section-spin">
               <div className="button-container">
                 {this.renderManualButton('left', (<Icon_RotateRight/>))}
               </div>
-
               <Rotater curSpin={this.props.curSpin}
-                       manualDirection={this.state.holdingButton} 
-                       framerate={this.state.framerate} 
-                       debug={this.state.debug}
-                       useAcceleration={this.state.acceleration} />
-
+                       framerate={this.props.framerate} 
+                       manualDirection={this.state.holdingButton}
+                       debug={this.props.debug}
+                       useAcceleration={this.props.useAcceleration} />
               <div className="button-container">
                 {this.renderManualButton('right', (<Icon_RotateLeft/>))}
               </div>
             </section>
-              {this.renderDropdown()}
+            {this.renderSpinSelection()}
           </div>
-        <div id="holla">
-          <a href="http://www.thomasyancey.com" target="_blank">{'...see some of my other stuff'}</a>
-        </div>
+          <div id="holla">
+            <a href="http://www.thomasyancey.com" target="_blank">{'...see some of my other stuff'}</a>
+          </div>
         </section>
       </div>
     );
@@ -223,5 +141,9 @@ export default connect(state => ({
   loaded: state.loaded,
   defaultSpinId: state.defaultSpinId,
   spinIds: state.spinIds,
+  debug: state.debug,
+  settings: state.settings,
+  framerate: state.framerate,
+  useAcceleration: state.useAcceleration,
   curSpin: state.curSpin
 }))(RotaterContainer);

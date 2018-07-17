@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 require('./style.less');
 
+const DEFAULT_FRAMERATE = 33;
 
 export default class Rotater extends Component {
   constructor(){
@@ -21,7 +22,7 @@ export default class Rotater extends Component {
   }
 
   componentDidMount(){
-    this.startSpinInterval(this.props.framerate);
+    this.startSpinInterval(this.props.framerate || DEFAULT_FRAMERATE);
   }
 
   componentDidUpdate(prevProps, prevState){
@@ -121,6 +122,7 @@ export default class Rotater extends Component {
     const friction = ph.friction;
     const maxAPMs = ph.maxAPMs;
     const minAPMs = ph.minAPMs;
+    const spinDirection = this.props.curSpin.direction;
 
 
     //- calc time elapsed since last checkPhysics cycle
@@ -138,7 +140,7 @@ export default class Rotater extends Component {
       if(this.props.useAcceleration){
         APMs = this.getAdvancedSpeedup(timeDiff, APMs);
       }else{
-        APMs = this.state.dragXPercent * maxAPMs;
+        APMs = this.state.dragXPercent * maxAPMs * spinDirection;
       }
     }else{
       for(let i = 0; i < timeDiff; i++){
@@ -338,10 +340,13 @@ export default class Rotater extends Component {
     const apm = parseInt(this.state.APMs * 1000);
     const dragPercent = parseInt(this.state.dragXPercent * 100);
     const fps = parseInt(1000 / this.props.framerate);
+    const direction = this.props.curSpin.direction > 0 ? '>>>' : '<<<';
 
     return(
       <div className="rotater-debug">
         <ul>
+          <li>{`direction: ${direction}`}</li>
+          <li>{`frame: ${this.state.curIdx}/${this.props.curSpin.images.length}`}</li>
           <li>{`angle: ${angle} deg`}</li>
           <li>{`deg/sec: ${apm}`}</li>
           <li>{`dragPercent: ${dragPercent}%`}</li>

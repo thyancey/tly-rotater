@@ -1,0 +1,155 @@
+@import "~themes/variables.less";
+
+
+header{
+  position:absolute;
+  box-shadow:0rem .5rem 1rem @color-grey-1;
+  z-index:1;
+  // padding:.5rem;
+
+  height:@header-height;
+  width:100%;
+
+  color:@color-green-5;
+  background-color:@color-grey-2;
+
+  h1{
+    position:fixed;
+    padding-left:1rem;
+    margin-top:-1rem;
+    font-size:3.5rem;
+    pointer-events:none;
+    z-index:2;
+
+    color:@color-grey-4;
+  }
+}
+
+
+
+.settings{
+  position:absolute;
+  width:100%;
+  top:0;
+  background-color:orange;
+
+  .settings-button{
+    position:absolute;
+    z-index:2;
+
+    right:1rem;
+    top:0rem;
+    padding:.5rem;
+    cursor:pointer;
+
+    color:@color-grey-4;
+    fill:@color-grey-4;
+
+    &:hover{
+      color:@color-green-4;
+      fill:@color-green-4;
+    }
+
+    h4{
+      display:inline-block;
+      vertical-align:middle;
+      margin-top:-1rem;
+    }
+
+    >div{
+      display:inline-block;
+      vertical-align:middle;
+      margin-left:.5rem;
+      padding:.1rem;
+      width:3rem;
+
+      svg{
+        width:100%;
+        height:100%;
+      }
+    }
+
+  }
+
+  .settings-body{
+    position:absolute;
+    top:0;
+    width:100%;
+    max-height:100rem;
+    z-index:1;
+
+    text-align:right;
+    padding:4rem 3rem 2rem 1rem;
+    box-shadow:0rem 1rem 1rem @color-grey-1;
+    background: linear-gradient(to top, @color-grey-3 , @color-grey-2);
+    color:@color-grey-5;
+
+    opacity:1;
+    transition: opacity .5s, max-height .2s;
+
+    >div{
+      display:inline-block;
+      vertical-align:top;
+    }
+
+    &.hidden{
+      pointer-events:none;
+      max-height:0;
+      opacity:0;
+      transition: opacity .2s, max-height .5s;
+    }
+
+
+    .settings-description{
+      text-align:left;
+      width:40%;
+      padding:1rem;
+      color: @color-grey-4;
+
+      font-size:1.25rem;
+    };
+
+
+    .settings-menu{
+      width:60%;
+      padding-right:1.5rem;
+      border-right:.1rem solid @color-grey-4;
+      border-left:.1rem dashed @color-grey-1;
+
+      >div:first-child{
+        padding-top:1rem;
+      }
+    }
+  }
+}
+
+.setting{
+  margin:1rem;
+}
+.setting-checkbox{
+
+  >*{
+    display:inline-block;
+    vertical-align:middle;
+  }
+
+  &:hover{
+    color:@color-green-4;
+  }
+
+  cursor:pointer;
+  input{
+    cursor:pointer;
+    margin-left:1rem;
+    background-color:blue;
+  }
+}
+.setting-slider{
+    input{
+    cursor:pointer;
+
+    }
+  &:hover{
+    color:@color-green-4;
+  }
+}
