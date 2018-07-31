@@ -324,24 +324,26 @@ export default class Rotater extends Component {
 * Dragging the spin around
 */
   onRotaterDragStart(mouseOrTouchEvent){
-    // console.log('onRotaterDragStart', mouseOrTouchEvent.changedTouches);
-    try{
-      let startX;
-      if(mouseOrTouchEvent.changedTouches){
-        startX = mouseOrTouchEvent.changedTouches[0].clientX;
-      }else{
-        startX = mouseOrTouchEvent.clientX;
+    // console.log('onRotaterDragStart', mouseOrTouchEvent);
+    if(this.state.loaded){
+      try{
+        let startX;
+        if(mouseOrTouchEvent.changedTouches){
+          startX = mouseOrTouchEvent.changedTouches[0].clientX;
+        }else{
+          startX = mouseOrTouchEvent.clientX;
+        }
+
+        this.setState({ 
+          dragging: true,
+          startX: startX,
+          lastTime: new Date().getTime(),
+          isSpinning:true
+        });
+
+      }catch(e){
+        console.error('problem with onRotaterDragStart:', e);
       }
-
-      this.setState({ 
-        dragging: true,
-        startX: startX,
-        lastTime: new Date().getTime(),
-        isSpinning:true
-      });
-
-    }catch(e){
-      console.error('problem with onRotaterDragStart:', e);
     }
   }
 

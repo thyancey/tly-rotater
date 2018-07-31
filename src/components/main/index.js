@@ -27,7 +27,7 @@ class RotaterContainer extends Component {
                     }, 
                     err => console.error("Error fretching url", err)) //- bad url responds with 200/ok? so this doesnt get thrown
               .then(json => {
-                      // console.log(json);
+                      // console.log('data read.');
                       this.props.actions.setRotaterData(json);
                       return true;
                     }, 
@@ -40,7 +40,7 @@ class RotaterContainer extends Component {
   }
 
   componentDidUpdate(prevProps){
-    if(this.props.loaded && !prevProps.loaded){
+    if(this.props.loaded && (!prevProps.loaded || this.props.curSpin.id === null)){
       this.props.actions.setCurrentSpin(this.props.defaultSpinId);
     }
   }
