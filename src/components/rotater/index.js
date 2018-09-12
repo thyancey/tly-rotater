@@ -493,7 +493,7 @@ export default class Rotater extends Component {
     const angle = parseInt(this.state.angle);
     const apm = parseInt(this.state.APMs * 1000);
     const dragPercent = parseInt(this.state.dragXPercent * 100);
-    const fps = parseInt(1000 / this.props.framerate);
+    const fps = parseInt(1000 / (this.props.framerate || DEFAULT_FRAMERATE));
     const direction = this.props.curSpin.direction > 0 ? '>>>' : '<<<';
 
     return(

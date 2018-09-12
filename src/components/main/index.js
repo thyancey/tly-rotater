@@ -5,6 +5,7 @@ import Icon_RotateLeft from '../../images/rotate-left.svg';
 import Icon_RotateRight from '../../images/rotate-right.svg';
 
 import Header from 'src/components/header';
+import Button from 'src/components/shared/button';
 import Rotater from 'src/components/rotater';
 
 require('./style.less');
@@ -111,7 +112,11 @@ class RotaterContainer extends Component {
           <div className="rotater-stage">
             <section className="section-spin">
               <div className="button-container">
-                {this.renderManualButton('left', (<Icon_RotateRight/>))}
+                <Button direction="left" 
+                        onPress={(e, direction) => this.onRotationButtonDown(e, direction)} 
+                        onRelease={(e, direction) => this.onRotationButtonUp(e, direction)} >
+                  <Icon_RotateRight/>
+                </Button>
               </div>
               <Rotater curSpin={this.props.curSpin}
                        framerate={this.props.framerate} 
@@ -119,7 +124,11 @@ class RotaterContainer extends Component {
                        debug={this.props.debug}
                        useAcceleration={this.props.useAcceleration} />
               <div className="button-container">
-                {this.renderManualButton('right', (<Icon_RotateLeft/>))}
+                <Button direction="right" 
+                        onPress={(e, direction) => this.onRotationButtonDown(e, direction)} 
+                        onRelease={(e, direction) => this.onRotationButtonUp(e, direction)} >
+                  <Icon_RotateLeft/>
+                </Button>
               </div>
             </section>
             {this.renderSpinSelection()}

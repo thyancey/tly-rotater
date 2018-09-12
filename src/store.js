@@ -36,7 +36,7 @@ const store = {
     defaultSpinId: null,
     spinDefinitions:{},
     spinLabels:[],
-    framerate:0,
+    framerate:30,
     settings: false,
     debug: true,
     useAcceleration: false,
